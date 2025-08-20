@@ -21,6 +21,7 @@ import { useToast } from "../contexts/ToastContext";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useT } from "../../i18n/I18nextProvider";
 
 const schema = z.object({
   name: z.string().min(2, "Min 2 znaki").max(40, "Max 40 znaków"),
@@ -43,6 +44,7 @@ export const ZoneEditScreen: React.FC = () => {
   const { zoneId } = route.params;
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
+  const { t } = useT();
   const zone = useAppSelector((s) =>
     s.zones.zones.find((z) => z.id === zoneId)
   );
@@ -109,10 +111,12 @@ export const ZoneEditScreen: React.FC = () => {
     )
       .unwrap()
       .then(() => {
-        showToast("Zapisano zmiany", "success");
+        showToast(t("zones.edit.saved"), "success");
         navigation.goBack();
       })
-      .catch((e: any) => showToast(e?.message || "Błąd zapisu", "error"));
+      .catch((e: any) =>
+        showToast(e?.message || t("zones.edit.saveError"), "error")
+      );
   };
 
   const handleDelete = () => {
@@ -121,13 +125,15 @@ export const ZoneEditScreen: React.FC = () => {
       dispatch(deleteZoneAsync(zone.id) as any)
         .unwrap()
         .then(() => {
-          showToast("Strefa usunięta", "success");
+          showToast(t("zones.edit.deleted"), "success");
           navigation.navigate("ZonesList");
         })
-        .catch((e: any) => showToast(e?.message || "Błąd usuwania", "error"));
+        .catch((e: any) =>
+          showToast(e?.message || t("zones.edit.deleteError"), "error")
+        );
     };
     if (Platform.OS === "web") {
-      if (window.confirm("Czy na pewno chcesz usunąć strefę?")) exec();
+      if (window.confirm(t("zones.edit.deleteConfirm"))) exec();
     } else {
       exec();
     }
@@ -143,14 +149,14 @@ export const ZoneEditScreen: React.FC = () => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {!zone && (
         <View style={{ padding: 32 }}>
-          <Text style={{ fontSize: 16 }}>Nie znaleziono strefy.</Text>
+          <Text style={{ fontSize: 16 }}>{t("zones.edit.notFound")}</Text>
         </View>
       )}
       {zone && (
         <>
-          <Text style={styles.header}>Edytuj strefę</Text>
+          <Text style={styles.header}>{t("zones.edit.title")}</Text>
 
-          <Text style={styles.sectionTitle}>Nazwa strefy</Text>
+          <Text style={styles.sectionTitle}>{t("zones.edit.name")}</Text>
           <Controller
             control={control}
             name="name"
@@ -159,7 +165,7 @@ export const ZoneEditScreen: React.FC = () => {
                 style={[styles.input, errors.name && styles.inputError]}
                 value={value}
                 onChangeText={onChange}
-                placeholder="Wpisz nazwę"
+                placeholder={t("zones.placeholders.name")}
               />
             )}
           />
@@ -167,7 +173,7 @@ export const ZoneEditScreen: React.FC = () => {
             <Text style={styles.errorText}>{errors.name.message}</Text>
           )}
 
-          <Text style={styles.sectionTitle}>Ikona</Text>
+          <Text style={styles.sectionTitle}>{t("zones.edit.icon")}</Text>
           <Controller
             control={control}
             name="icon"
@@ -192,7 +198,7 @@ export const ZoneEditScreen: React.FC = () => {
             <Text style={styles.errorText}>{errors.icon.message}</Text>
           )}
 
-          <Text style={styles.sectionTitle}>Adres</Text>
+          <Text style={styles.sectionTitle}>{t("zones.edit.address")}</Text>
           <Controller
             control={control}
             name="address"
@@ -201,7 +207,7 @@ export const ZoneEditScreen: React.FC = () => {
                 style={[styles.input, errors.address && styles.inputError]}
                 value={value}
                 onChangeText={onChange}
-                placeholder="Wpisz adres"
+                placeholder={t("wizard.addressHint")}
               />
             )}
           />
@@ -209,7 +215,7 @@ export const ZoneEditScreen: React.FC = () => {
             <Text style={styles.errorText}>{errors.address.message}</Text>
           )}
 
-          <Text style={styles.sectionTitle}>Promień strefy</Text>
+          <Text style={styles.sectionTitle}>{t("zones.edit.radius")}</Text>
           <Controller
             control={control}
             name="radius"
@@ -246,12 +252,14 @@ export const ZoneEditScreen: React.FC = () => {
             disabled={isSubmitting}
           >
             <Text style={styles.saveButtonText}>
-              {isSubmitting ? "Zapisywanie..." : "Zapisz zmiany"}
+              {isSubmitting ? t("status.saving") : t("zones.edit.save")}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Usuń strefę</Text>
+            <Text style={styles.deleteButtonText}>
+              {t("zones.edit.delete")}
+            </Text>
           </TouchableOpacity>
         </>
       )}

@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useZoneCreatorStore } from "../../state/zoneCreatorStore";
 import { useAppSelector } from "../../state/hooks";
 import { isViewer } from "../../modules/auth/rbac";
+import { useT } from "../../i18n/I18nextProvider";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ZonesStackParamList } from "../navigation/types";
@@ -39,6 +40,7 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
   );
   const user = useAppSelector((s) => s.auth.user);
   const viewer = isViewer(user);
+  const { t } = useT();
 
   const { control, handleSubmit, formState } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -100,7 +102,7 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
         ]}
       >
         <Text style={{ fontSize: 16, padding: 24, textAlign: "center" }}>
-          Twoja rola (Viewer) nie pozwala na tworzenie stref.
+          {t("zones.viewerNoCreate")}
         </Text>
       </View>
     );
@@ -109,12 +111,12 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.stepText}>Krok 1 z 4</Text>
+        <Text style={styles.stepText}>{t("wizard.step1of4")}</Text>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: "25%" }]} />
         </View>
 
-        <Text style={styles.title}>Nadaj nazwę strefie</Text>
+        <Text style={styles.title}>{t("wizard.nameTitle")}</Text>
 
         <View style={styles.inputContainer}>
           <Controller
@@ -126,7 +128,7 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
                   styles.input,
                   formState.errors.name && styles.inputError,
                 ]}
-                placeholder="Wpisz nazwę"
+                placeholder={t("zones.placeholders.name")}
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}
@@ -141,7 +143,7 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Wybierz ikonę</Text>
+        <Text style={styles.sectionTitle}>{t("wizard.chooseIcon")}</Text>
 
         <View style={styles.iconsGrid}>
           {icons.map((icon, index) => (
@@ -169,7 +171,7 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
               !canContinue && styles.disabledButtonText,
             ]}
           >
-            Dalej
+            {t("common.next")}
           </Text>
         </TouchableOpacity>
       </View>

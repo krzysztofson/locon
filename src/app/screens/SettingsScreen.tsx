@@ -10,22 +10,24 @@ import {
 } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
 import { roleCapabilities } from "../../modules/auth/rbac";
+import { useT } from "../../i18n/I18nextProvider";
 
 export const SettingsScreen: React.FC = () => {
   const { logout, user, setRole } = useAuth();
+  const { t, changeLanguage, currentLanguage } = useT();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [locationEnabled, setLocationEnabled] = React.useState(true);
 
   console.log("SettingsScreen: Rendering for user:", user?.email);
 
   const handleLogout = () => {
-    Alert.alert("Wyloguj się", "Czy na pewno chcesz się wylogować?", [
+    Alert.alert(t("settings.logoutTitle"), t("settings.logoutConfirm"), [
       {
-        text: "Anuluj",
+        text: t("settings.cancel"),
         style: "cancel",
       },
       {
-        text: "Wyloguj",
+        text: t("settings.confirmLogout"),
         style: "destructive",
         onPress: logout,
       },
@@ -40,12 +42,7 @@ export const SettingsScreen: React.FC = () => {
             <Text style={styles.userName}>{user.name}</Text>
             <Text style={styles.userPhone}>{user.phone}</Text>
             <Text style={styles.userRole}>
-              Rola:{" "}
-              {user.role === "admin"
-                ? "Administrator"
-                : user.role === "user"
-                ? "Użytkownik"
-                : "Przeglądający"}
+              {t("settings.role")} {t(`settings.roles.${user.role}`)}
             </Text>
             <View style={styles.rolesRow}>
               {(["admin", "user", "viewer"] as const).map((r) => (
@@ -72,13 +69,13 @@ export const SettingsScreen: React.FC = () => {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Powiadomienia</Text>
+          <Text style={styles.sectionTitle}>{t("settings.notifications")}</Text>
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Powiadomienia push</Text>
+              <Text style={styles.settingLabel}>{t("settings.push")}</Text>
               <Text style={styles.settingDescription}>
-                Otrzymuj alerty o aktywności w strefach
+                {t("settings.pushDesc")}
               </Text>
             </View>
             <Switch
@@ -91,13 +88,41 @@ export const SettingsScreen: React.FC = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Lokalizacja</Text>
+          <Text style={styles.sectionTitle}>{t("settings.location")}</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t("settings.language")}</Text>
+            <View style={styles.rolesRow}>
+              {["pl", "en", "de"].map((lng) => (
+                <TouchableOpacity
+                  key={lng}
+                  style={[
+                    styles.rolePill,
+                    lng === currentLanguage && styles.rolePillActive,
+                  ]}
+                  onPress={() => {
+                    changeLanguage(lng);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.rolePillText,
+                      lng === currentLanguage && styles.rolePillTextActive,
+                    ]}
+                  >
+                    {lng}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Usługi lokalizacyjne</Text>
+              <Text style={styles.settingLabel}>
+                {t("settings.locationServices")}
+              </Text>
               <Text style={styles.settingDescription}>
-                Wymagane do działania stref bezpieczeństwa
+                {t("settings.locationServicesDesc")}
               </Text>
             </View>
             <Switch
@@ -110,51 +135,53 @@ export const SettingsScreen: React.FC = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Konto</Text>
+          <Text style={styles.sectionTitle}>{t("settings.account")}</Text>
 
           <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuLabel}>Profil użytkownika</Text>
+            <Text style={styles.menuLabel}>{t("settings.userProfile")}</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuLabel}>Zarządzaj urządzeniami</Text>
+            <Text style={styles.menuLabel}>{t("settings.devices")}</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuLabel}>Uprawnienia rodziny</Text>
+            <Text style={styles.menuLabel}>{t("settings.permissions")}</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Wsparcie</Text>
+          <Text style={styles.sectionTitle}>{t("settings.support")}</Text>
 
           <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuLabel}>Pomoc i FAQ</Text>
+            <Text style={styles.menuLabel}>{t("settings.help")}</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuLabel}>Skontaktuj się z nami</Text>
+            <Text style={styles.menuLabel}>{t("settings.contact")}</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuLabel}>Polityka prywatności</Text>
+            <Text style={styles.menuLabel}>{t("settings.privacy")}</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Wyloguj się</Text>
+            <Text style={styles.logoutText}>{t("settings.logout")}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.version}>Wersja 1.0.0</Text>
+          <Text style={styles.version}>
+            {t("settings.version", { version: "1.0.0" })}
+          </Text>
         </View>
       </View>
     </ScrollView>

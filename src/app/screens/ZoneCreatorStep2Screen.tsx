@@ -18,6 +18,7 @@ import {
 import { useZoneCreatorStore } from "../../state/zoneCreatorStore";
 import MapView, { Marker } from "../../components/PlatformMap";
 import { Platform } from "react-native";
+import { useT } from "../../i18n/I18nextProvider";
 
 type ZoneCreatorStep2NavigationProp = NativeStackNavigationProp<
   ZonesStackParamList,
@@ -29,6 +30,7 @@ type ZoneCreatorStep2RouteProp = RouteProp<
 >;
 
 export const ZoneCreatorStep2Screen: React.FC = () => {
+  const { t } = useT();
   const navigation = useNavigation<ZoneCreatorStep2NavigationProp>();
   const route = useRoute<ZoneCreatorStep2RouteProp>();
   const { name, icon } = route.params;
@@ -119,22 +121,26 @@ export const ZoneCreatorStep2Screen: React.FC = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.stepText}>Krok 2 z 4</Text>
+        <Text style={styles.stepText}>{t("wizard.step2of4")}</Text>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: "50%" }]} />
         </View>
 
-        <Text style={styles.title}>Określ lokalizację</Text>
+        <Text style={styles.title}>{t("wizard.locationTitle")}</Text>
 
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Wpisz adres lub miejsce"
+            placeholder={t("wizard.addressPlaceholder", {
+              defaultValue: "Wpisz adres lub miejsce",
+            })}
             value={query}
             onChangeText={setQuery}
             placeholderTextColor="#999999"
           />
-          {loading && <Text style={styles.loadingText}>Szukam...</Text>}
+          {loading && (
+            <Text style={styles.loadingText}>{t("wizard.searching")}</Text>
+          )}
           {suggestions.length > 0 && (
             <View style={styles.suggestionsBox}>
               {suggestions.map((s) => (
@@ -171,20 +177,16 @@ export const ZoneCreatorStep2Screen: React.FC = () => {
             </MapView>
             {!zoneDraft.center && (
               <View style={styles.centerOverlay}>
-                <Text style={styles.centerHint}>
-                  Przeciągnij / wybierz adres
-                </Text>
+                <Text style={styles.centerHint}>{t("wizard.centerHint")}</Text>
               </View>
             )}
           </View>
         </View>
 
-        <Text style={styles.hint}>
-          Wpisz adres, wybierz z listy lub użyj lokalizacji.
-        </Text>
+        <Text style={styles.hint}>{t("wizard.addressHint")}</Text>
 
         <TouchableOpacity style={styles.geoButton} onPress={useMyLocation}>
-          <Text style={styles.geoButtonText}>Użyj mojej lokalizacji</Text>
+          <Text style={styles.geoButtonText}>{t("wizard.useMyLocation")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -198,7 +200,7 @@ export const ZoneCreatorStep2Screen: React.FC = () => {
               !canContinue && styles.disabledButtonText,
             ]}
           >
-            Dalej
+            {t("common.next")}
           </Text>
         </TouchableOpacity>
       </View>

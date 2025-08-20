@@ -1,4 +1,5 @@
 import React from "react";
+import { useT } from "../../i18n/I18nextProvider";
 import { Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MainTabParamList } from "./types";
@@ -10,6 +11,7 @@ import { TestZonesScreen } from "../screens/TestZonesScreen";
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainTabNavigator: React.FC = () => {
+  const { t } = useT();
   console.log("MainTabNavigator: Rendering tab navigator");
 
   return (
@@ -37,7 +39,7 @@ export const MainTabNavigator: React.FC = () => {
         name="HomeTab"
         component={HomeScreen}
         options={{
-          title: "Mapa",
+          title: t("navigation.home", { defaultValue: t("zones.map") }),
           tabBarIcon: ({ color, size }) => (
             <TabIcon icon="🗺️" color={color} size={size} />
           ),
@@ -47,7 +49,7 @@ export const MainTabNavigator: React.FC = () => {
         name="ZonesTab"
         component={ZonesNavigator}
         options={{
-          title: "Strefy",
+          title: t("zones.title"),
           tabBarIcon: ({ color, size }) => (
             <TabIcon icon="🛡️" color={color} size={size} />
           ),
@@ -57,7 +59,9 @@ export const MainTabNavigator: React.FC = () => {
         name="SettingsTab"
         component={SettingsScreen}
         options={{
-          title: "Ustawienia",
+          title: t("navigation.settings", {
+            defaultValue: t("settings.support"),
+          }),
           tabBarIcon: ({ color, size }) => (
             <TabIcon icon="⚙️" color={color} size={size} />
           ),

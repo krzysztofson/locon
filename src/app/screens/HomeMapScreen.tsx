@@ -15,6 +15,7 @@ import { Device, Zone } from "../../types";
 import { MOCK_DEVICES, MOCK_ZONES } from "../../data"; // fallback if store empty
 import { useAppSelector } from "../../state/hooks";
 import { can } from "../../modules/auth/rbac";
+import { useT } from "../../i18n/I18nextProvider";
 
 // Define Region interface for cross-platform compatibility
 interface Region {
@@ -26,6 +27,7 @@ interface Region {
 
 export const HomeMapScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useT();
   const dispatch = useDispatch();
   const mapRef = useRef<any>(null);
 
@@ -120,27 +122,32 @@ export const HomeMapScreen: React.FC = () => {
   const handleToggleZoneNotifications = (zone: Zone) => {
     // Implementation for toggling notifications
     Alert.alert(
-      "Powiadomienia",
-      `Powiadomienia dla strefy "${zone.name}" zostały ${
-        Object.values(zone.notificationsByDevice).some((enabled) => enabled)
-          ? "wyłączone"
-          : "włączone"
-      }.`
+      t("home.notificationsTitle"),
+      t("home.notificationsToggled", {
+        name: zone.name,
+        state: Object.values(zone.notificationsByDevice).some(
+          (enabled) => enabled
+        )
+          ? t("home.notificationsOff")
+          : t("home.notificationsOn"),
+      })
     );
   };
 
   const handleDeleteZone = (zone: Zone) => {
     Alert.alert(
-      "Usuń strefę",
-      `Czy na pewno chcesz usunąć strefę "${zone.name}"?`,
+      t("home.deleteZoneTitle"),
+      t("home.deleteZoneBody", { name: zone.name }),
       [
-        { text: "Anuluj", style: "cancel" },
+        { text: t("zones.list.cancel"), style: "cancel" },
         {
-          text: "Usuń",
+          text: t("zones.list.delete"),
           style: "destructive",
           onPress: () => {
-            // Implementation for deleting zone
-            Alert.alert("Usunięto", `Strefa "${zone.name}" została usunięta.`);
+            Alert.alert(
+              t("home.deletedTitle"),
+              t("home.deletedBody", { name: zone.name })
+            );
           },
         },
       ]
@@ -175,7 +182,7 @@ export const HomeMapScreen: React.FC = () => {
           { justifyContent: "center", alignItems: "center" },
         ]}
       >
-        <Text>Ładowanie danych urządzeń...</Text>
+        <Text>{t("home.devicesLoading")}</Text>
       </View>
     );
   }

@@ -16,6 +16,7 @@ import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { createZoneAsync } from "../../state/slices/zonesThunks";
 import { addZone, removeZone } from "../../state/slices/zonesSlice";
 import { useToast } from "../contexts/ToastContext";
+import { useT } from "../../i18n/I18nextProvider";
 
 type ZoneCreatorStep4NavigationProp = NativeStackNavigationProp<
   ZonesStackParamList,
@@ -42,6 +43,7 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const devicesFromStore = useAppSelector((s) => s.devices.devices);
+  const { t } = useT();
 
   // Mock devices data
   const devices: Device[] = [
@@ -93,7 +95,7 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
     const base = {
       id: optimisticId,
       name,
-      description: `Strefa ${name}`,
+      description: `${t("zones.descriptionPrefix")} ${name}`,
       type: "other" as const,
       coordinates: {
         latitude: coordinates.lat,
@@ -140,12 +142,12 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
       ).unwrap();
       // remove optimistic (will remain final created via fulfilled push) => optional cleanup
       dispatch(removeZone(optimisticId));
-      showToast("Strefa utworzona", "success");
+      showToast(t("zones.create.success"), "success");
       navigation.navigate("ZoneCreatorSuccess");
       reset();
     } catch (e) {
       dispatch(removeZone(optimisticId));
-      showToast("Nie udało się utworzyć strefy", "error");
+      showToast(t("zones.create.error"), "error");
     } finally {
       setSaving(false);
     }
@@ -154,17 +156,14 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.stepText}>Krok 4 z 4</Text>
+        <Text style={styles.stepText}>{t("wizard.step4of4")}</Text>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: "100%" }]} />
         </View>
 
-        <Text style={styles.title}>Wybierz urządzenia</Text>
+        <Text style={styles.title}>{t("wizard.devicesTitle")}</Text>
 
-        <Text style={styles.subtitle}>
-          Dla których urządzeń chcesz otrzymywać powiadomienia o wejściu i
-          wyjściu ze strefy?
-        </Text>
+        <Text style={styles.subtitle}>{t("wizard.devicesSubtitle")}</Text>
 
         <View style={styles.devicesList}>
           {devices.map((device) => (
@@ -179,7 +178,9 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
                 </View>
               </View>
               <View style={styles.notificationToggle}>
-                <Text style={styles.toggleLabel}>Włącz powiadomienia</Text>
+                <Text style={styles.toggleLabel}>
+                  {t("wizard.toggleNotifications")}
+                </Text>
                 <Switch
                   value={zoneDraft.notificationsByDevice[device.id] ?? true}
                   onValueChange={() => handleNotificationToggle(device.id)}
@@ -197,10 +198,7 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
 
         <View style={styles.hint}>
           <Text style={styles.hintIcon}>💡</Text>
-          <Text style={styles.hintText}>
-            Wskazówka: Gdy włączysz powiadomienia, będziesz otrzymywać alerty
-            zarówno o wejściu, jak i wyjściu urządzenia ze strefy.
-          </Text>
+          <Text style={styles.hintText}>{t("wizard.hintNotifications")}</Text>
         </View>
 
         <TouchableOpacity
@@ -209,7 +207,7 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
           disabled={saving}
         >
           <Text style={styles.saveButtonText}>
-            {saving ? "Zapisywanie..." : "Zapisz"}
+            {saving ? t("status.saving") : t("common.save")}
           </Text>
         </TouchableOpacity>
       </View>

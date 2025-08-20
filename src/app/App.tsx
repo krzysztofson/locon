@@ -3,7 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { Provider } from "react-redux";
 import { store } from "../state/store";
 import { ThemeProvider } from "../theme/ThemeProvider";
-import { I18nProvider } from "../i18n/I18nProvider";
+import { I18nextWrapper } from "../i18n/I18nextProvider";
 import { AuthProvider } from "../contexts/AuthContext";
 import { RootNavigator } from "./navigation";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -14,7 +14,7 @@ const App = () => {
     <View style={{ flex: 1 }}>
       <Provider store={store}>
         <ThemeProvider>
-          <I18nProvider>
+          <I18nextWrapper>
             <AuthProvider>
               <ToastProvider>
                 <View style={{ flex: 1 }}>
@@ -24,7 +24,7 @@ const App = () => {
                 </View>
               </ToastProvider>
             </AuthProvider>
-          </I18nProvider>
+          </I18nextWrapper>
         </ThemeProvider>
       </Provider>
     </View>

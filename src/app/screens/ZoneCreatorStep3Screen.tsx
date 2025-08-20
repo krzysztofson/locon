@@ -11,6 +11,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
 import { ZonesStackParamList } from "../navigation/types";
 import { useZoneCreatorStore } from "../../state/zoneCreatorStore";
+import { useT } from "../../i18n/I18nextProvider";
 import MapView, { Circle, Marker } from "../../components/PlatformMap";
 
 type ZoneCreatorStep3NavigationProp = NativeStackNavigationProp<
@@ -27,6 +28,7 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
   const route = useRoute<ZoneCreatorStep3RouteProp>();
   const { name, icon, address, coordinates } = route.params;
   const { zoneDraft, setRadius } = useZoneCreatorStore();
+  const { t } = useT();
   const [radius, internalSetRadius] = useState(zoneDraft.radius || 250);
   useEffect(() => {
     setRadius(radius);
@@ -67,12 +69,12 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.stepText}>Krok 3 z 4</Text>
+        <Text style={styles.stepText}>{t("wizard.step3of4")}</Text>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: "75%" }]} />
         </View>
 
-        <Text style={styles.title}>Ustal obszar strefy</Text>
+        <Text style={styles.title}>{t("wizard.areaTitle")}</Text>
 
         <View style={styles.mapContainer}>
           <View style={styles.mapPlaceholder}>
@@ -107,7 +109,7 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
           </View>
         </View>
 
-        <Text style={styles.radiusLabel}>Promień obszaru:</Text>
+        <Text style={styles.radiusLabel}>{t("wizard.radiusLabel")}</Text>
         <Text style={styles.radiusValue}>{radius} m</Text>
 
         <View style={styles.sliderContainer}>
@@ -118,8 +120,8 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
             onResponderMove={handleTrackPress}
             style={styles.sliderTrack}
             accessibilityRole="adjustable"
-            accessibilityLabel="Promień strefy"
-            accessibilityValue={{ text: `${radius} metrów` }}
+            accessibilityLabel={t("wizard.radiusAccessibilityLabel")}
+            accessibilityValue={{ text: `${radius} m` }}
           >
             <View
               style={[styles.sliderFill, { width: `${radiusPercentage}%` }]}
@@ -177,13 +179,10 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.hint}>
-          Dostosuj wielkość obszaru gestem lub za pomocą przycisków plus i
-          minus. Maksymalny promień strefy to 5000m.
-        </Text>
+        <Text style={styles.hint}>{t("wizard.radiusHint")}</Text>
 
         <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-          <Text style={styles.nextButtonText}>Dalej</Text>
+          <Text style={styles.nextButtonText}>{t("common.next")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

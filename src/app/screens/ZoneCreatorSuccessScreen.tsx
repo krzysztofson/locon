@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ZonesStackParamList } from "../navigation/types";
+import { useT } from "../../i18n/I18nextProvider";
 
 type ZoneCreatorSuccessNavigationProp = NativeStackNavigationProp<
   ZonesStackParamList,
@@ -11,6 +12,7 @@ type ZoneCreatorSuccessNavigationProp = NativeStackNavigationProp<
 
 export const ZoneCreatorSuccessScreen: React.FC = () => {
   const navigation = useNavigation<ZoneCreatorSuccessNavigationProp>();
+  const { t } = useT();
 
   const handleGoToZones = () => {
     navigation.navigate("ZonesList");
@@ -32,32 +34,33 @@ export const ZoneCreatorSuccessScreen: React.FC = () => {
           <Text style={styles.checkmark}>✅</Text>
         </View>
 
-        <Text style={styles.title}>Strefa została utworzona!</Text>
+        <Text style={styles.title}>{t("wizard.successTitle")}</Text>
 
-        <Text style={styles.description}>
-          Dzięki ustawieniu strefy zawsze otrzymasz automatyczny alert, gdy Twój
-          Bliski wejdzie lub wyjdzie z wyznaczonego obszaru.
-        </Text>
+        <Text style={styles.description}>{t("wizard.successDescription")}</Text>
 
         <TouchableOpacity
           style={styles.primaryButton}
           onPress={handleGoToZones}
         >
-          <Text style={styles.primaryButtonText}>Przejdź do stref</Text>
+          <Text style={styles.primaryButtonText}>{t("wizard.goToZones")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.secondaryAltButton}
           onPress={handleGoToMap}
         >
-          <Text style={styles.secondaryAltButtonText}>Zobacz na mapie</Text>
+          <Text style={styles.secondaryAltButtonText}>
+            {t("wizard.viewOnMap")}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.secondaryButton}
           onPress={handleAddAnother}
         >
-          <Text style={styles.secondaryButtonText}>Dodaj kolejną</Text>
+          <Text style={styles.secondaryButtonText}>
+            {t("wizard.addAnother")}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

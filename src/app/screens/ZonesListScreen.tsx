@@ -30,6 +30,7 @@ import { Switch } from "../../components/themed/Switch";
 import { Modal } from "../../components/themed/Modal";
 import { IconButton } from "../../components/themed/IconButton";
 import { useToast } from "../contexts/ToastContext";
+import { useT } from "../../i18n/I18nextProvider";
 
 type ZonesListNavigationProp = NativeStackNavigationProp<
   ZonesStackParamList,
@@ -62,6 +63,7 @@ const ZoneCard: React.FC<
   canDelete,
 }) => {
   const [showActionsModal, setShowActionsModal] = useState(false);
+  const { t } = useT();
   const isPending = zone.id.startsWith("tmp_");
 
   const getZoneIcon = (type?: string) => {
@@ -141,14 +143,14 @@ const ZoneCard: React.FC<
                 {zone.name}
               </Text>
               <Text variant="caption" style={styles.zoneRadius}>
-                Promień: {zone.coordinates?.radius || 100}m
+                {t("zones.list.radius")}: {zone.coordinates?.radius || 100}m
               </Text>
               <Text variant="caption" style={styles.zoneDevices}>
-                Powiadomienia: {getDevicesWithNotifications()}
+                {t("zones.list.notifications")}: {getDevicesWithNotifications()}
               </Text>
               {isPending && (
                 <Text variant="caption" style={styles.pendingText}>
-                  Zapisywanie...
+                  {t("zones.list.saving")}
                 </Text>
               )}
             </View>
@@ -182,7 +184,7 @@ const ZoneCard: React.FC<
         <Modal
           visible={showActionsModal}
           onClose={() => setShowActionsModal(false)}
-          title="Akcje strefy"
+          title={t("zones.list.actionsTitle")}
           size="sm"
           showCloseButton
           showFooter
@@ -190,7 +192,7 @@ const ZoneCard: React.FC<
             ...(canUpdate
               ? [
                   {
-                    label: "Edytuj",
+                    label: t("common.edit"),
                     onPress: handleEdit,
                     variant: "primary" as const,
                   },
@@ -199,7 +201,7 @@ const ZoneCard: React.FC<
             ...(canDelete
               ? [
                   {
-                    label: "Usuń",
+                    label: t("zones.list.delete"),
                     onPress: handleDelete,
                     variant: "error" as const,
                   },
@@ -207,56 +209,58 @@ const ZoneCard: React.FC<
               : []),
           ]}
         >
-          <Text>Wybierz akcję dla strefy "{zone.name}"</Text>
+          <Text>{t("zones.list.selectAction", { name: zone.name })}</Text>
         </Modal>
       )}
     </>
   );
 };
 
-const EmptyState: React.FC<{ onAddZone: () => void }> = ({ onAddZone }) => (
-  <View style={styles.emptyState}>
-    <View style={styles.emptyIconContainer}>
-      <Text style={styles.emptyIcon}>📍</Text>
+const EmptyState: React.FC<{ onAddZone: () => void }> = ({ onAddZone }) => {
+  const { t } = useT();
+  return (
+    <View style={styles.emptyState}>
+      <View style={styles.emptyIconContainer}>
+        <Text style={styles.emptyIcon}>📍</Text>
+      </View>
+      <Text variant="h3" style={styles.emptyTitle}>
+        {t("zones.list.emptyTitle")}
+      </Text>
+      <View style={styles.featureList}>
+        <View style={styles.feature}>
+          <Text style={styles.featureIcon}>📱</Text>
+          <Text style={styles.featureText}>
+            {t("zones.list.emptyFeature1")}
+          </Text>
+        </View>
+        <View style={styles.feature}>
+          <Text style={styles.featureIcon}>📍</Text>
+          <Text style={styles.featureText}>
+            {t("zones.list.emptyFeature2")}
+          </Text>
+        </View>
+        <View style={styles.feature}>
+          <Text style={styles.featureIcon}>🛡</Text>
+          <Text style={styles.featureText}>
+            {t("zones.list.emptyFeature3")}
+          </Text>
+        </View>
+      </View>
+      <Button
+        title={t("zones.list.addFirst")}
+        onPress={onAddZone}
+        variant="primary"
+        style={styles.addFirstZoneButton}
+      />
     </View>
-    <Text variant="h3" style={styles.emptyTitle}>
-      Czym są strefy bezpieczeństwa?
-    </Text>
-    <View style={styles.featureList}>
-      <View style={styles.feature}>
-        <Text style={styles.featureIcon}>📱</Text>
-        <Text style={styles.featureText}>
-          Otrzymuj automatyczne powiadomienia gdy Twoi bliscy wejdą lub wyjdą z
-          ważnych miejsc
-        </Text>
-      </View>
-      <View style={styles.feature}>
-        <Text style={styles.featureIcon}>📍</Text>
-        <Text style={styles.featureText}>
-          Ustaw strefy wokół domu, szkoły, pracy czy placu zabaw
-        </Text>
-      </View>
-      <View style={styles.feature}>
-        <Text style={styles.featureIcon}>🛡</Text>
-        <Text style={styles.featureText}>
-          Bądź spokojny wiedząc, że Twoi bliscy są bezpieczni w określonych
-          miejscach
-        </Text>
-      </View>
-    </View>
-    <Button
-      title="Dodaj pierwszą strefę"
-      onPress={onAddZone}
-      variant="primary"
-      style={styles.addFirstZoneButton}
-    />
-  </View>
-);
+  );
+};
 
 export const ZonesListScreen: React.FC = () => {
   const navigation = useNavigation<ZonesListNavigationProp>();
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
+  const { t } = useT();
 
   const { zones, isLoading, error } = useAppSelector((state) => state.zones);
   const authUser = useAppSelector((s) => s.auth.user);
@@ -289,10 +293,10 @@ export const ZonesListScreen: React.FC = () => {
     setRefreshing(true);
     try {
       await dispatch(fetchZonesAsync()).unwrap();
-      showToast("Odświeżono strefy", "success");
+      showToast(t("zones.list.refreshed"), "success");
     } catch (error) {
       console.error("Failed to refresh zones:", error);
-      showToast("Nie udało się odświeżyć stref", "error");
+      showToast(t("zones.list.refreshError"), "error");
     } finally {
       setRefreshing(false);
     }
@@ -314,14 +318,14 @@ export const ZonesListScreen: React.FC = () => {
     dispatch({ type: "zones/toggleZoneActive", payload: zoneId });
     try {
       await dispatch(toggleZoneActiveAsync(zoneId)).unwrap();
-      showToast("Zmieniono status strefy", "success");
+      showToast(t("zones.list.statusChanged"), "success");
     } catch (error) {
       // rollback
       if (prev !== undefined) {
         dispatch({ type: "zones/toggleZoneActive", payload: zoneId });
       }
       console.error("Failed to toggle zone active:", error);
-      showToast("Nie udało się zmienić stanu strefy", "error");
+      showToast(t("zones.list.statusChangeError"), "error");
     }
   };
 
@@ -333,15 +337,15 @@ export const ZonesListScreen: React.FC = () => {
     // Jeśli to strefa tymczasowa (optymistyczna), usuń lokalnie
     if (zoneId.startsWith("tmp_")) {
       dispatch(removeZone(zoneId));
-      showToast("Anulowano tworzenie strefy", "info");
+      showToast(t("zones.list.createCancelled"), "info");
       return;
     }
     try {
       await dispatch(deleteZoneAsync(zoneId)).unwrap();
-      showToast("Usunięto strefę", "success");
+      showToast(t("zones.list.deleted"), "success");
     } catch (error) {
       console.error("Failed to delete zone:", error);
-      showToast("Nie udało się usunąć strefy", "error");
+      showToast(t("zones.list.deleteError"), "error");
     }
   };
 
@@ -371,8 +375,7 @@ export const ZonesListScreen: React.FC = () => {
     return (
       <View style={styles.header}>
         <Text variant="body" style={styles.subtitle}>
-          Ustaw strefę i otrzymuj powiadomienia gdy Bliski się w niej pojawi lub
-          ją opuści.
+          {t("zones.list.subtitle")}
         </Text>
       </View>
     );
@@ -383,7 +386,7 @@ export const ZonesListScreen: React.FC = () => {
 
     return canCreate ? (
       <Button
-        title="+ Dodaj strefę"
+        title={t("zones.list.add")}
         onPress={handleAddZone}
         variant="outline"
         style={styles.addZoneButton}
@@ -395,7 +398,7 @@ export const ZonesListScreen: React.FC = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" />
-        <Text style={styles.loadingText}>Ładowanie stref...</Text>
+        <Text style={styles.loadingText}>{t("zones.list.loading")}</Text>
       </View>
     );
   }
@@ -413,7 +416,7 @@ export const ZonesListScreen: React.FC = () => {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          title="Odśwież strefy"
+          title={t("zones.list.refresh")}
         />
       }
       contentContainerStyle={

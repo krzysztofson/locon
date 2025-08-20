@@ -1,4 +1,5 @@
 import React from "react";
+import { useT } from "../../i18n/I18nextProvider";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ZonesStackParamList } from "./types";
 import {
@@ -14,6 +15,7 @@ import {
 const Stack = createNativeStackNavigator<ZonesStackParamList>();
 
 export const ZonesNavigator: React.FC = () => {
+  const { t } = useT();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -30,37 +32,37 @@ export const ZonesNavigator: React.FC = () => {
       <Stack.Screen
         name="ZonesList"
         component={ZonesListScreen}
-        options={{ title: "Strefy" }}
+        options={{ title: t("zones.title") }}
       />
       <Stack.Screen
         name="ZoneCreatorStep1"
         component={ZoneCreatorStep1Screen}
-        options={{ title: "Dodaj strefę" }}
+        options={{ title: t("zones.createZone") }}
       />
       <Stack.Screen
         name="ZoneCreatorStep2"
         component={ZoneCreatorStep2Screen}
-        options={{ title: "Dodaj strefę" }}
+        options={{ title: t("zones.createZone") }}
       />
       <Stack.Screen
         name="ZoneCreatorStep3"
         component={ZoneCreatorStep3Screen}
-        options={{ title: "Dodaj strefę" }}
+        options={{ title: t("zones.createZone") }}
       />
       <Stack.Screen
         name="ZoneCreatorStep4"
         component={ZoneCreatorStep4Screen}
-        options={{ title: "Dodaj strefę" }}
+        options={{ title: t("zones.createZone") }}
       />
       <Stack.Screen
         name="ZoneCreatorSuccess"
         component={ZoneCreatorSuccessScreen}
-        options={{ title: "Dodaj strefę" }}
+        options={{ title: t("zones.createZone") }}
       />
       <Stack.Screen
         name="ZoneEdit"
         component={ZoneEditScreen}
-        options={{ title: "Edytuj strefę" }}
+        options={{ title: t("zones.editZone") }}
       />
     </Stack.Navigator>
   );
