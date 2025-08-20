@@ -1,0 +1,705 @@
+{
+  "zones": [
+    {
+      "id": "zone-1",
+      "name": "Dom",
+      "description": "Strefa domowa - główne miejsce przebywania rodziny",
+      "type": "home",
+      "coordinates": {
+        "latitude": 52.2297,
+        "longitude": 21.0122,
+        "radius": 100
+      },
+      "address": "ul. Marszałkowska 1, 00-001 Warszawa",
+      "isActive": true,
+      "notifications": {
+        "onEntry": true,
+        "onExit": true,
+        "sound": true,
+        "vibration": true
+      },
+      "devices": ["device-1", "device-2"],
+      "schedule": {
+        "enabled": true,
+        "activeHours": {
+          "start": "07:00",
+          "end": "22:00"
+        },
+        "activeDays": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday"
+        ]
+      },
+      "createdAt": "2025-08-15T10:00:00Z",
+      "updatedAt": "2025-08-19T14:30:00Z",
+      "createdBy": "user-admin",
+      "color": "#50C878"
+    },
+    {
+      "id": "zone-2",
+      "name": "Szkoła",
+      "description": "Szkoła podstawowa nr 10 - miejsce nauki dzieci",
+      "type": "school",
+      "coordinates": {
+        "latitude": 52.2319,
+        "longitude": 21.0067,
+        "radius": 50
+      },
+      "address": "ul. Nowy Świat 15, 00-029 Warszawa",
+      "isActive": true,
+      "notifications": {
+        "onEntry": true,
+        "onExit": true,
+        "sound": false,
+        "vibration": true
+      },
+      "devices": ["device-2", "device-3"],
+      "schedule": {
+        "enabled": true,
+        "activeHours": {
+          "start": "07:30",
+          "end": "15:30"
+        },
+        "activeDays": ["monday", "tuesday", "wednesday", "thursday", "friday"]
+      },
+      "createdAt": "2025-08-16T09:15:00Z",
+      "updatedAt": "2025-08-19T11:45:00Z",
+      "createdBy": "user-admin",
+      "color": "#2C5282"
+    },
+    {
+      "id": "zone-3",
+      "name": "Praca",
+      "description": "Biuro - miejsce pracy rodzica",
+      "type": "work",
+      "coordinates": {
+        "latitude": 52.2356,
+        "longitude": 21.0089,
+        "radius": 75
+      },
+      "address": "ul. Krakowskie Przedmieście 26/28, 00-927 Warszawa",
+      "isActive": false,
+      "notifications": {
+        "onEntry": false,
+        "onExit": true,
+        "sound": true,
+        "vibration": false
+      },
+      "devices": ["device-1"],
+      "schedule": {
+        "enabled": true,
+        "activeHours": {
+          "start": "08:00",
+          "end": "17:00"
+        },
+        "activeDays": ["monday", "tuesday", "wednesday", "thursday", "friday"]
+      },
+      "createdAt": "2025-08-17T12:20:00Z",
+      "updatedAt": "2025-08-18T16:10:00Z",
+      "createdBy": "user-admin",
+      "color": "#FF6B6B"
+    }
+  ],
+  "devices": [
+    {
+      "id": "device-1",
+      "name": "iPhone Anna",
+      "type": "phone",
+      "model": "iPhone 14 Pro",
+      "operator": "Orange",
+      "phoneNumber": "+48123456789",
+      "imei": "123456789012345",
+      "status": "online",
+      "batteryLevel": 85,
+      "lastSeen": "2025-08-19T14:25:00Z",
+      "location": {
+        "latitude": 52.2297,
+        "longitude": 21.0122,
+        "accuracy": 10,
+        "timestamp": "2025-08-19T14:25:00Z"
+      },
+      "owner": {
+        "id": "user-1",
+        "name": "Anna Kowalska",
+        "role": "admin",
+        "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b5c5?w=150"
+      },
+      "settings": {
+        "gpsEnabled": true,
+        "notificationsEnabled": true,
+        "emergencyMode": false,
+        "shareLocation": true
+      },
+      "isActive": true,
+      "createdAt": "2025-08-10T10:00:00Z"
+    },
+    {
+      "id": "device-2",
+      "name": "Telefon Michał",
+      "type": "phone",
+      "model": "Samsung Galaxy S23",
+      "operator": "Play",
+      "phoneNumber": "+48123456790",
+      "imei": "123456789012346",
+      "status": "online",
+      "batteryLevel": 92,
+      "lastSeen": "2025-08-19T14:20:00Z",
+      "location": {
+        "latitude": 52.2319,
+        "longitude": 21.0067,
+        "accuracy": 15,
+        "timestamp": "2025-08-19T14:20:00Z"
+      },
+      "owner": {
+        "id": "user-2",
+        "name": "Michał Kowalski",
+        "role": "user",
+        "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
+      },
+      "settings": {
+        "gpsEnabled": true,
+        "notificationsEnabled": true,
+        "emergencyMode": false,
+        "shareLocation": true
+      },
+      "isActive": true,
+      "createdAt": "2025-08-12T15:30:00Z"
+    },
+    {
+      "id": "device-3",
+      "name": "Lokalizator GJD.13",
+      "type": "tracker",
+      "model": "GJD.13 GPS Tracker",
+      "operator": "T-Mobile",
+      "phoneNumber": "+48123456791",
+      "imei": "GJD13-789012347",
+      "status": "online",
+      "batteryLevel": 78,
+      "lastSeen": "2025-08-19T14:15:00Z",
+      "location": {
+        "latitude": 52.2284,
+        "longitude": 21.0105,
+        "accuracy": 5,
+        "timestamp": "2025-08-19T14:15:00Z"
+      },
+      "owner": {
+        "id": "user-3",
+        "name": "Kasia Kowalska",
+        "role": "viewer",
+        "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150"
+      },
+      "settings": {
+        "gpsEnabled": true,
+        "notificationsEnabled": true,
+        "emergencyMode": false,
+        "shareLocation": true,
+        "updateInterval": 30
+      },
+      "isActive": true,
+      "createdAt": "2025-08-14T11:45:00Z"
+    },
+    {
+      "id": "device-4",
+      "name": "Lokalizator BS.07",
+      "type": "tracker",
+      "model": "BS.07 Smart Tracker",
+      "operator": "Plus",
+      "phoneNumber": "+48123456792",
+      "imei": "BS07-789012348",
+      "status": "offline",
+      "batteryLevel": 15,
+      "lastSeen": "2025-08-19T12:30:00Z",
+      "location": {
+        "latitude": 52.2245,
+        "longitude": 21.0134,
+        "accuracy": 8,
+        "timestamp": "2025-08-19T12:30:00Z"
+      },
+      "owner": {
+        "id": "user-4",
+        "name": "Tomek Kowalski",
+        "role": "viewer",
+        "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150"
+      },
+      "settings": {
+        "gpsEnabled": true,
+        "notificationsEnabled": true,
+        "emergencyMode": false,
+        "shareLocation": true,
+        "updateInterval": 60
+      },
+      "isActive": true,
+      "createdAt": "2025-08-16T09:20:00Z"
+    }
+  ],
+  "user": {
+    "id": "user-admin",
+    "name": "Anna Kowalska",
+    "email": "anna.kowalska@example.com",
+    "role": "admin",
+    "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b5c5?w=150",
+    "phone": "+48123456789",
+    "permissions": {
+      "zones": {
+        "create": true,
+        "read": true,
+        "update": true,
+        "delete": true
+      },
+      "devices": {
+        "create": true,
+        "read": true,
+        "update": true,
+        "delete": true
+      },
+      "users": {
+        "create": true,
+        "read": true,
+        "update": true,
+        "delete": false
+      },
+      "settings": {
+        "read": true,
+        "update": true
+      },
+      "notifications": {
+        "send": true,
+        "manage": true
+      }
+    },
+    "preferences": {
+      "language": "pl",
+      "theme": "light",
+      "notifications": {
+        "push": true,
+        "email": true,
+        "sms": false
+      }
+    },
+    "createdAt": "2025-08-01T10:00:00Z",
+    "lastLogin": "2025-08-19T14:00:00Z"
+  },
+  "permissions": {
+    "admin": {
+      "zones": {
+        "create": true,
+        "read": true,
+        "update": true,
+        "delete": true
+      },
+      "devices": {
+        "create": true,
+        "read": true,
+        "update": true,
+        "delete": true
+      },
+      "users": {
+        "create": true,
+        "read": true,
+        "update": true,
+        "delete": false
+      },
+      "settings": {
+        "read": true,
+        "update": true
+      },
+      "notifications": {
+        "send": true,
+        "manage": true
+      }
+    },
+    "user": {
+      "zones": {
+        "create": false,
+        "read": true,
+        "update": false,
+        "delete": false
+      },
+      "devices": {
+        "create": false,
+        "read": true,
+        "update": true,
+        "delete": false
+      },
+      "users": {
+        "create": false,
+        "read": true,
+        "update": false,
+        "delete": false
+      },
+      "settings": {
+        "read": true,
+        "update": true
+      },
+      "notifications": {
+        "send": false,
+        "manage": false
+      }
+    },
+    "viewer": {
+      "zones": {
+        "create": false,
+        "read": true,
+        "update": false,
+        "delete": false
+      },
+      "devices": {
+        "create": false,
+        "read": true,
+        "update": false,
+        "delete": false
+      },
+      "users": {
+        "create": false,
+        "read": false,
+        "update": false,
+        "delete": false
+      },
+      "settings": {
+        "read": true,
+        "update": false
+      },
+      "notifications": {
+        "send": false,
+        "manage": false
+      }
+    }
+  },
+  "themes": {
+    "Orange": {
+      "id": "orange",
+      "name": "Orange",
+      "operator": "Orange",
+      "colors": {
+        "primary": "#FF6600",
+        "secondary": "#FFFFFF",
+        "accent": "#FF9933",
+        "background": "#F5F5F5",
+        "surface": "#FFFFFF",
+        "text": "#333333",
+        "textSecondary": "#666666",
+        "border": "#E5E5E5"
+      },
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Orange_logo.svg/200px-Orange_logo.svg.png"
+    },
+    "Play": {
+      "id": "play",
+      "name": "Play",
+      "operator": "Play",
+      "colors": {
+        "primary": "#662D91",
+        "secondary": "#FFFFFF",
+        "accent": "#9B59B6",
+        "background": "#F5F5F5",
+        "surface": "#FFFFFF",
+        "text": "#333333",
+        "textSecondary": "#666666",
+        "border": "#E5E5E5"
+      },
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Play_logo.svg/200px-Play_logo.svg.png"
+    },
+    "T-Mobile": {
+      "id": "tmobile",
+      "name": "T-Mobile",
+      "operator": "T-Mobile",
+      "colors": {
+        "primary": "#E20074",
+        "secondary": "#FFFFFF",
+        "accent": "#FF1493",
+        "background": "#F5F5F5",
+        "surface": "#FFFFFF",
+        "text": "#333333",
+        "textSecondary": "#666666",
+        "border": "#E5E5E5"
+      },
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/T-Mobile_Logo.svg/200px-T-Mobile_Logo.svg.png"
+    },
+    "Plus": {
+      "id": "plus",
+      "name": "Plus",
+      "operator": "Plus",
+      "colors": {
+        "primary": "#00A651",
+        "secondary": "#FFFFFF",
+        "accent": "#32CD32",
+        "background": "#F5F5F5",
+        "surface": "#FFFFFF",
+        "text": "#333333",
+        "textSecondary": "#666666",
+        "border": "#E5E5E5"
+      },
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Plus_logo.svg/200px-Plus_logo.svg.png"
+    },
+    "default": {
+      "id": "default",
+      "name": "Bezpieczna Rodzina",
+      "operator": "default",
+      "colors": {
+        "primary": "#2C5282",
+        "secondary": "#FFFFFF",
+        "accent": "#50C878",
+        "background": "#F5F5F5",
+        "surface": "#FFFFFF",
+        "text": "#333333",
+        "textSecondary": "#666666",
+        "border": "#E5E5E5"
+      },
+      "logo": null
+    }
+  },
+  "i18n": {
+    "pl": {
+      "language": "pl",
+      "name": "Polski",
+      "flag": "🇵🇱",
+      "translations": {
+        "app": {
+          "name": "Bezpieczna Rodzina",
+          "tagline": "Dbaj o swoich bliskich"
+        },
+        "auth": {
+          "login": "Zaloguj się",
+          "logout": "Wyloguj się",
+          "phone": "Numer telefonu",
+          "code": "Kod weryfikacyjny",
+          "sendCode": "Wyślij kod",
+          "verifyCode": "Zweryfikuj kod",
+          "invalidCode": "Nieprawidłowy kod",
+          "phoneRequired": "Numer telefonu jest wymagany"
+        },
+        "navigation": {
+          "home": "Mapa",
+          "zones": "Strefy",
+          "settings": "Ustawienia"
+        },
+        "zones": {
+          "title": "Strefy",
+          "empty": "Brak stref",
+          "emptyDescription": "Nie masz jeszcze żadnych stref. Stwórz pierwszą strefę.",
+          "create": "Utwórz strefę",
+          "edit": "Edytuj strefę",
+          "delete": "Usuń strefę",
+          "name": "Nazwa strefy",
+          "description": "Opis",
+          "address": "Adres",
+          "radius": "Promień (metry)",
+          "notifications": "Powiadomienia",
+          "schedule": "Harmonogram",
+          "devices": "Urządzenia",
+          "save": "Zapisz",
+          "cancel": "Anuluj"
+        },
+        "devices": {
+          "title": "Urządzenia",
+          "online": "Online",
+          "offline": "Offline",
+          "battery": "Bateria",
+          "lastSeen": "Ostatnia aktywność",
+          "location": "Lokalizacja"
+        },
+        "common": {
+          "yes": "Tak",
+          "no": "Nie",
+          "ok": "OK",
+          "cancel": "Anuluj",
+          "save": "Zapisz",
+          "delete": "Usuń",
+          "edit": "Edytuj",
+          "loading": "Ładowanie...",
+          "error": "Błąd",
+          "success": "Sukces"
+        }
+      }
+    },
+    "en": {
+      "language": "en",
+      "name": "English",
+      "flag": "🇬🇧",
+      "translations": {
+        "app": {
+          "name": "Safe Family",
+          "tagline": "Take care of your loved ones"
+        },
+        "auth": {
+          "login": "Log in",
+          "logout": "Log out",
+          "phone": "Phone number",
+          "code": "Verification code",
+          "sendCode": "Send code",
+          "verifyCode": "Verify code",
+          "invalidCode": "Invalid code",
+          "phoneRequired": "Phone number is required"
+        },
+        "navigation": {
+          "home": "Map",
+          "zones": "Zones",
+          "settings": "Settings"
+        },
+        "zones": {
+          "title": "Zones",
+          "empty": "No zones",
+          "emptyDescription": "You don't have any zones yet. Create your first zone.",
+          "create": "Create zone",
+          "edit": "Edit zone",
+          "delete": "Delete zone",
+          "name": "Zone name",
+          "description": "Description",
+          "address": "Address",
+          "radius": "Radius (meters)",
+          "notifications": "Notifications",
+          "schedule": "Schedule",
+          "devices": "Devices",
+          "save": "Save",
+          "cancel": "Cancel"
+        },
+        "devices": {
+          "title": "Devices",
+          "online": "Online",
+          "offline": "Offline",
+          "battery": "Battery",
+          "lastSeen": "Last seen",
+          "location": "Location"
+        },
+        "common": {
+          "yes": "Yes",
+          "no": "No",
+          "ok": "OK",
+          "cancel": "Cancel",
+          "save": "Save",
+          "delete": "Delete",
+          "edit": "Edit",
+          "loading": "Loading...",
+          "error": "Error",
+          "success": "Success"
+        }
+      }
+    },
+    "de": {
+      "language": "de",
+      "name": "Deutsch",
+      "flag": "🇩🇪",
+      "translations": {
+        "app": {
+          "name": "Sichere Familie",
+          "tagline": "Kümmere dich um deine Lieben"
+        },
+        "auth": {
+          "login": "Anmelden",
+          "logout": "Abmelden",
+          "phone": "Telefonnummer",
+          "code": "Bestätigungscode",
+          "sendCode": "Code senden",
+          "verifyCode": "Code bestätigen",
+          "invalidCode": "Ungültiger Code",
+          "phoneRequired": "Telefonnummer ist erforderlich"
+        },
+        "navigation": {
+          "home": "Karte",
+          "zones": "Zonen",
+          "settings": "Einstellungen"
+        },
+        "zones": {
+          "title": "Zonen",
+          "empty": "Keine Zonen",
+          "emptyDescription": "Sie haben noch keine Zonen. Erstellen Sie Ihre erste Zone.",
+          "create": "Zone erstellen",
+          "edit": "Zone bearbeiten",
+          "delete": "Zone löschen",
+          "name": "Zonenname",
+          "description": "Beschreibung",
+          "address": "Adresse",
+          "radius": "Radius (Meter)",
+          "notifications": "Benachrichtigungen",
+          "schedule": "Zeitplan",
+          "devices": "Geräte",
+          "save": "Speichern",
+          "cancel": "Abbrechen"
+        },
+        "devices": {
+          "title": "Geräte",
+          "online": "Online",
+          "offline": "Offline",
+          "battery": "Batterie",
+          "lastSeen": "Zuletzt gesehen",
+          "location": "Standort"
+        },
+        "common": {
+          "yes": "Ja",
+          "no": "Nein",
+          "ok": "OK",
+          "cancel": "Abbrechen",
+          "save": "Speichern",
+          "delete": "Löschen",
+          "edit": "Bearbeiten",
+          "loading": "Wird geladen...",
+          "error": "Fehler",
+          "success": "Erfolg"
+        }
+      }
+    }
+  },
+  "geolocation": {
+    "mockLocations": [
+      {
+        "id": "location-1",
+        "name": "Centrum Warszawy",
+        "latitude": 52.2297,
+        "longitude": 21.0122,
+        "accuracy": 10,
+        "address": "ul. Marszałkowska 1, 00-001 Warszawa"
+      },
+      {
+        "id": "location-2",
+        "name": "Szkoła",
+        "latitude": 52.2319,
+        "longitude": 21.0067,
+        "accuracy": 15,
+        "address": "ul. Nowy Świat 15, 00-029 Warszawa"
+      },
+      {
+        "id": "location-3",
+        "name": "Park Łazienkowski",
+        "latitude": 52.2148,
+        "longitude": 21.0352,
+        "accuracy": 20,
+        "address": "Park Łazienkowski, Warszawa"
+      },
+      {
+        "id": "location-4",
+        "name": "Galeria Mokotów",
+        "latitude": 52.1804,
+        "longitude": 21.0442,
+        "accuracy": 8,
+        "address": "ul. Wołoska 12, 02-675 Warszawa"
+      }
+    ],
+    "mockRoute": {
+      "deviceId": "device-2",
+      "points": [
+        {
+          "latitude": 52.2297,
+          "longitude": 21.0122,
+          "timestamp": "2025-08-19T14:00:00Z",
+          "speed": 0
+        },
+        {
+          "latitude": 52.2305,
+          "longitude": 21.0115,
+          "timestamp": "2025-08-19T14:05:00Z",
+          "speed": 5
+        },
+        {
+          "latitude": 52.2319,
+          "longitude": 21.0067,
+          "timestamp": "2025-08-19T14:15:00Z",
+          "speed": 0
+        }
+      ]
+    }
+  }
+}

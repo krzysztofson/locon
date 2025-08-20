@@ -1,0 +1,61 @@
+export interface Zone {
+  id: string;
+  name: string;
+  description: string;
+  type: "home" | "school" | "work" | "other";
+  coordinates: {
+    latitude: number;
+    longitude: number;
+    radius: number;
+  };
+  address: string;
+  isActive: boolean;
+  notifications: {
+    onEntry: boolean;
+    onExit: boolean;
+    sound: boolean;
+    vibration: boolean;
+  };
+  devices: string[];
+  schedule: {
+    enabled: boolean;
+    activeHours: {
+      start: string;
+      end: string;
+    };
+    activeDays: string[];
+  };
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  color: string;
+}
+
+export interface ZoneCreationData {
+  name: string;
+  description: string;
+  type: "home" | "school" | "work" | "other";
+  coordinates: {
+    latitude: number;
+    longitude: number;
+    radius: number;
+  };
+  address: string;
+  isActive: boolean;
+  notifications: {
+    onEntry: boolean;
+    onExit: boolean;
+    sound: boolean;
+    vibration: boolean;
+  };
+  devices: string[];
+  schedule: {
+    enabled: boolean;
+    activeHours: {
+      start: string;
+      end: string;
+    };
+    activeDays: string[];
+  };
+  color: string;
+}
