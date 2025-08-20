@@ -12,7 +12,6 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainTabNavigator: React.FC = () => {
   const { t } = useT();
-  console.log("MainTabNavigator: Rendering tab navigator");
 
   return (
     <Tab.Navigator

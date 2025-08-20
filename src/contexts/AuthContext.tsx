@@ -75,8 +75,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (phone: string, otp: string) => {
     try {
-      await authService.verifyOTP(phone, otp);
-      await checkAuthState();
+      const u = await authService.verifyOTP(phone, otp);
+      setUser(u);
+      setIsAuthenticated(true);
+      dispatch(authSlice.actions.loginSuccess(u as User));
     } catch (error) {
       throw error;
     }
@@ -84,8 +86,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const verifyOTP = async (phone: string, otp: string) => {
     try {
-      await authService.verifyOTP(phone, otp);
-      await checkAuthState();
+      const u = await authService.verifyOTP(phone, otp);
+      setUser(u);
+      setIsAuthenticated(true);
+      dispatch(authSlice.actions.loginSuccess(u as User));
     } catch (error) {
       throw error;
     }
@@ -94,13 +98,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       await authService.logout();
-      setUser(null);
-      setIsAuthenticated(false);
     } catch (error) {
       console.error("Error during logout:", error);
-      // Still clear local state even if API call fails
+    } finally {
+      // Always clear local + redux state
       setUser(null);
       setIsAuthenticated(false);
+      dispatch(authSlice.actions.logout());
     }
   };
 
@@ -128,13 +132,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       dispatch(authSlice.actions.loginSuccess({ ...u, role } as User));
     }, 0);
   };
-
-  // Default to admin if no user (development convenience)
-  useEffect(() => {
-    if (!user && !isLoading) {
-      setRole("admin");
-    }
-  }, [user, isLoading]);
 
   const value: AuthContextType = {
     isAuthenticated,

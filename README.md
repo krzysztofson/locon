@@ -1,190 +1,235 @@
-# Bezpieczna Rodzina - React Native Location App
+# Family Safety / Location App (React Native + Web)
 
-Aplikacja mobilna React Native dla zarządzania bezpieczeństwem rodziny z funkcjami geofencing i monitorowania lokalizacji.
+Cross‑platform (iOS / Android / Web) geofencing & family location management app with role‑based access control, theming, internationalization (EN/PL/DE) and a fully featured mock backend.
 
-## 🚀 Szybki start
+</div>
 
-### Frontend
+---
+
+## 1. Overview
+
+This project showcases a production‑style architecture for a location aware application:
+
+- Geofenced Zones: create, edit, list, delete
+- Role Based Access Control (RBAC): admin / user / viewer with UI guarding
+- Multi‑language UI (i18next) with persistence & lazy loading
+- Theming & Design System (light/dark/operator themes) with typed tokens
+- Unified codebase running on React Native (mobile) and React Native Web (browser)
+- Fully documented mock API (JSON Server + custom routes)
+- TypeScript throughout for safety & DX
+
+## 2. Key Features
+
+| Domain  | Highlights                                                                                              |
+| ------- | ------------------------------------------------------------------------------------------------------- |
+| Zones   | 4‑step creation wizard, edit screen, list with empty & error states                                     |
+| Map     | Native maps on mobile, Leaflet on web (shared abstraction)                                              |
+| Auth    | SMS style (send / verify code) stubbed via mock API                                                     |
+| RBAC    | Capability matrix (create/read/update/delete) enforced in UI helpers                                    |
+| i18n    | EN / PL / DE resources, fallback, async storage persistence, runtime switching                          |
+| Theming | Operator & base themes, tokens for color/spacing/typography, dark mode ready                            |
+| State   | Redux Toolkit slices (auth, zones) + localized context and lightweight local state (Zustand for wizard) |
+| UX      | Consistent design system components (Button, Text, Input, Card, Modal, Switch, Loader, IconButton)      |
+| Tooling | Jest tests (utilities, i18n, RBAC), ESLint, TypeScript strictness                                       |
+
+## 3. Tech Stack
+
+Core:
+
+- React 18 / React Native 0.72 / React Native Web
+- TypeScript
+- Redux Toolkit & React Redux
+- Zustand (zone creator local workflow)
+- i18next + react-i18next + async persistence
+- react-native-maps (mobile) + Leaflet / react-leaflet (web)
+- react-hook-form + zod (validation)
+
+Tooling & Dev Experience:
+
+- Jest + @testing-library/react-native / jest-native
+- ESLint, Prettier, Type checking (tsc)
+- Webpack (web target) + Metro (native)
+- JSON Server (mock backend) with custom endpoints
+
+## 4. Quick Start
 
 ```bash
-# Instalacja zależności
+# Install dependencies
 npm install
 
-# Uruchom z mock backend
-npm run dev              # Web app + mock API
-npm run dev:mobile       # Mobile app + mock API
+# Run web + mock API concurrently (port 3001 for API)
+npm run dev
 
-# Tylko frontend
-npm run web             # Web app
-npm start               # Mobile Metro bundler
-npm run ios             # iOS app
-npm run android         # Android app
-```
+# Run mobile (Metro) + mock API
+npm run dev:mobile
 
-### Mock Backend
+# Individual targets
+npm run web        # Web (webpack dev server)
+npm start          # Metro bundler
+npm run ios        # iOS (requires Xcode + simulator)
+npm run android    # Android (emulator or device)
 
-```bash
-# Tylko mock API server
-npm run mock-server     # Port 3001
+# Mock backend only
+npm run mock-server
 
-# Testowanie API
+# Test API contract sample
 node mock-data/test-api.js
 ```
 
-## 📡 Mock Backend
+## 5. Mock Backend
 
-Kompletny mock backend z endpointami z dokumentacji PDF:
+Implements all documented endpoints:
 
-- **GET/POST/PUT/DELETE** `/api/zones` - Zarządzanie strefami
-- **GET** `/api/devices` - Lista urządzeń
-- **GET** `/api/user/permissions` - Uprawnienia użytkownika
-- **GET** `/api/themes/:operator` - Motywy operatorów (Orange, Play, T-Mobile, Plus)
-- **GET** `/api/i18n/:lang` - Pakiety językowe (PL, EN, DE)
-- **POST** `/api/auth/send-code` & `/api/auth/verify-code` - Autoryzacja SMS
+- `GET /api/zones` – list zones
+- `POST /api/zones` – create
+- `PUT /api/zones/:id` – update
+- `DELETE /api/zones/:id` – delete
+- `GET /api/devices` – device inventory
+- `GET /api/user/permissions` – RBAC matrix
+- `GET /api/themes/:operator` – themed color sets
+- `GET /api/i18n/:lang` – remote translation bundle ({ translations })
+- `POST /api/auth/send-code` / `POST /api/auth/verify-code` – auth flow stub
 
-### Przykładowe dane:
+Sample data includes 3 zones, 4 devices, 3 roles, 5 themes, and 3 languages centered around Warsaw coordinates.
 
-- **3 strefy**: Dom, Szkoła, Praca z pełną konfiguracją
-- **4 urządzenia**: iPhone, Samsung, GJD.13, BS.07 z różnymi statusami
-- **3 role**: Admin, User, Viewer z uprawnieniami
-- **5 motywów**: Operatorzy + domyślny motyw
-- **3 języki**: Pełne tłumaczenia PL/EN/DE
-- **Mock geolokalizacji**: Współrzędne Warszawy
+Further details: see `mock-data/README.md`.
 
-📚 **[Pełna dokumentacja Mock API →](mock-data/README.md)**
+## 6. Internationalization
 
-## 🎨 Design System
+- Local resource bundles (`en`, `pl`, `de`)
+- Fallback language: `en`
+- Persisted selection via AsyncStorage
+- Runtime language switching (Settings screen)
+- Namespaced key structure with consistent prefixes (zones._, auth._, common._, settings._)
+- Defensive `t(key, { defaultValue })` usage for resiliency
 
-Kompletny system projektowy zgodny z wymaganiami:
+## 7. RBAC Model
 
-- **Główny kolor**: #2C5282 (niebieski)
-- **Akcenty**: #50C878 (zielony), #FF6B6B (czerwony)
-- **Radius**: 12px (karty), 8px (przyciski)
-- **Fonty**: Systemowe (SF Pro, Roboto)
-- **Ikony**: Material Design / SF Symbols
+Defined in `modules/auth/rbac.ts`:
 
-### Komponenty parametryzowane:
+```ts
+roleCapabilities = {
+  admin: { zones: { create: true, read: true, update: true, delete: true } },
+  user: { zones: { create: true, read: true, update: true, delete: true } },
+  viewer: {
+    zones: { create: false, read: true, update: false, delete: false },
+  },
+};
+```
 
-- `Button`, `Text`, `Input`, `Card`, `Modal`, `Container`, `IconButton`, `Switch`, `Loader`
-- **Themowanie**: Light/Dark/Custom motywy z kontekstem
-- **TypeScript**: Pełne typowanie dla wszystkich komponentów
+Helpers: `can(user, action, resource)`, `isAdmin`, `isUser`, `isViewer`.
+Used to drive conditional rendering (buttons, navigation paths, destructive actions).
 
-📚 **[Dokumentacja Design System →](src/components/themed/README.md)**
+## 8. Design System & Theming
 
-## 📁 Struktura projektu
+- Token file: `theme/tokens.ts`
+- Provider: `theme/ThemeProvider.tsx`
+- Supports operator themes (Orange, Play, T-Mobile, Plus) + base
+- Components consume typed theme via props & styled primitives
+- Consistent radii (cards: 12, buttons: 8) & color palette (#2C5282 primary, #50C878 success, #FF6B6B danger)
+- Components live under `components/themed/` – each with explicit prop types
+
+More: `components/themed/README.md`.
+
+## 9. Architecture
+
+Layered, modular structure:
+
+- `app/` navigation & screen composition
+- `modules/` feature domains (auth, zones)
+- `services/` cross‑cutting integrations (api, location/geofencing)
+- `state/` Redux store & slices
+- `theme/` design system & tokens
+- `i18n/` translation config + provider
+- `utils/` pure functions (validation, formatting, helpers)
+- `mock-data/` local API
+
+### Directory Snapshot
 
 ```
 src/
-├── app/                     # Nawigacja i główne ekrany
-│   ├── navigation/          # React Navigation struktura
-│   ├── screens/            # Wszystkie ekrany aplikacji
-│   └── App.tsx             # Główny komponent aplikacji
-├── modules/
-│   ├── zones/              # Zarządzanie strefami
-│   │   ├── ZonesList.tsx   # Lista stref z empty state
-│   │   ├── ZoneCreator.tsx # 4-etapowy kreator strefy
-│   │   ├── ZoneEdit.tsx    # Edycja istniejącej strefy
-│   │   ├── services.ts     # API dla stref (połączone z mock)
-│   │   └── types.ts        # Definicje typów
-│   └── auth/               # Autoryzacja SMS
-│       ├── LoginScreen.tsx # Ekran logowania z OTP
-│       ├── AuthService.ts  # Service autoryzacji
-│       └── types.ts        # Typy dla auth
-├── services/
-│   ├── api/                # API client i typy
-│   │   ├── client.ts       # HTTP client z fetch
-│   │   ├── services.ts     # Wszystkie API endpoints
-│   │   └── types.ts        # Typy dla API
-│   └── location/           # Serwisy lokalizacji
-│       ├── LocationService.ts     # GPS tracking
-│       ├── GeofencingService.ts   # Strefy geofencing
-│       └── types.ts        # Typy lokalizacji
-├── state/                   # Redux store
-│   ├── store.ts            # Konfiguracja store
-│   ├── slices/
-│   │   ├── authSlice.ts    # Stan autoryzacji
-│   │   └── zonesSlice.ts   # Stan stref
-│   └── types.ts            # Typy store
-├── theme/                   # System projektowy
-│   ├── tokens.ts           # Design tokens (kolory, przestrzeń, typography)
-│   ├── ThemeProvider.tsx   # Provider z kontekstem
-│   └── types.ts            # Typy dla motywów
-├── components/
-│   ├── themed/             # Komponenty z design system
-│   │   ├── Button.tsx      # Parametryzowany przycisk
-│   │   ├── Text.tsx        # Tekst z wariantami
-│   │   ├── Input.tsx       # Pola formularzy
-│   │   ├── Card.tsx        # Karty z motywami
-│   │   ├── Modal.tsx       # Modale z akcjami
-│   │   └── index.ts        # Eksporty wszystkich komponentów
-│   └── index.ts            # Główne eksporty
-├── i18n/                    # Wielojęzyczność
-│   ├── translations/        # Pakiety językowe
-│   │   ├── pl.ts           # Polski (główny)
-│   │   ├── en.ts           # Angielski
-│   │   └── de.ts           # Niemiecki
-│   ├── I18nProvider.tsx    # Provider i18n
-│   └── types.ts            # Typy dla tłumaczeń
-├── utils/                   # Utilities
-│   ├── validation.ts       # Walidacja formularzy
-│   ├── formatting.ts       # Formatowanie danych
-│   └── helpers.ts          # Pomocnicze funkcje
-└── tests/                   # Setup testów
-    ├── setup.ts            # Konfiguracja
-    └── mocks.ts            # Mock objekty
-
-mock-data/                   # Mock backend
-├── db.json                 # Baza danych JSON
-├── server.js               # Express server z custom routes
-├── test-api.js             # Script do testowania
-└── README.md               # Dokumentacja API
+    app/
+    modules/
+    services/
+    state/
+    theme/
+    components/
+    i18n/
+    utils/
+    __tests__/
+mock-data/
 ```
 
-## ✨ Funkcjonalności
+## 10. State Management
 
-- **🏠 Zarządzanie strefami**: Tworzenie, edycja i usuwanie stref geofencing
-- **📱 Monitorowanie urządzeń**: Śledzenie lokalizacji telefonów i lokalizatorów (GJD.13, BS.07)
-- **🔐 Autoryzacja SMS**: Logowanie przez kod weryfikacyjny
-- **🌍 Wielojęzyczność**: Pełne wsparcie dla PL, EN, DE
-- **🎨 System projektowy**: Spójne motywy i komponenty parametryzowane
-- **📊 State management**: Redux Toolkit dla stanu aplikacji
-- **🔒 TypeScript**: Pełna typizacja dla bezpieczeństwa kodu
-- **🎭 Motywy operatorów**: Orange, Play, T-Mobile, Plus z własnymi kolorami
+- Redux Toolkit for global auth & zones domain state
+- Async thunks (where applicable) hitting mock API
+- Local transient UI flows (zone creation wizard) use lightweight Zustand store
+- Selective context providers: i18n, Theme
 
-## 🛠️ Development
+## 11. Forms & Validation
+
+- `react-hook-form` for performant form state
+- `zod` schemas for declarative validation (see `utils/validation.ts`)
+- Error messages surfaced via localized strings
+
+## 12. Mapping Layer
+
+- Mobile: `react-native-maps` (downgraded for peer compatibility)
+- Web: `Leaflet` + `react-leaflet`
+- Shared abstraction component isolates platform specifics
+
+## 13. Testing
+
+- Jest configured with React Native preset
+- Setup file: `src/tests/setup.ts`
+- Current suites (20 tests): utilities (formatting, helpers, validation), i18n behavior, RBAC permissions
+- Extend by adding `.test.ts(x)` under `src/__tests__/`
+
+Run:
 
 ```bash
-# Type checking
-npm run type-check
-
-# Linting
-npm run lint
-
-# Testing
 npm test
-
-# Build web
-npm run build:web
 ```
 
-## 🏗️ Architektura
+## 14. Development Scripts
 
-Aplikacja używa modularnej architektury z:
+| Script                    | Purpose                                     |
+| ------------------------- | ------------------------------------------- |
+| `npm run dev`             | Web + mock backend concurrently             |
+| `npm run dev:mobile`      | Metro + mock backend                        |
+| `npm run web`             | Web dev server                              |
+| `npm start`               | Metro bundler                               |
+| `npm run ios` / `android` | Launch native app (env prerequisites apply) |
+| `npm run mock-server`     | Start mock API only                         |
+| `npm run type-check`      | TypeScript project check                    |
+| `npm run lint`            | ESLint validation                           |
+| `npm test`                | Jest test suites                            |
+| `npm run build:web`       | Production web build                        |
 
-- **📦 Moduły funkcjonalne** dla stref i autoryzacji
-- **🔌 Warstwa serwisów** dla API i lokalizacji
-- **🏪 Scentralizowany state** z Redux Toolkit
-- **🎨 System motywów** z design tokens
-- **🌍 Wielojęzyczność** dla wszystkich tekstów
-- **🔒 Type-safe utilities** i helpery
+## 15. Extensibility Ideas (Roadmap)
 
-## 🎯 Zgodność z PDF
+- Real authentication & refresh token rotation
+- Device live location streaming (WebSocket)
+- Push notifications integration
+- Offline caching & optimistic updates
+- Accessibility audit & enhancements (talkback/voiceover)
+- E2E tests (Detox / Playwright)
+- CI pipeline (lint/type/test) + coverage gating
 
-✅ **Pełna implementacja wymagań z dokumentacji PDF:**
+## 16. Contributing
 
-- ✅ Routing: Auth → Home(Mapa) → Zones(Lista/Kreator/Edycja) → Settings
-- ✅ Design system: #2C5282, #50C878/#FF6B6B, radius 12/8px, fonty systemowe
-- ✅ Mock backend: Wszystkie endpointy z API specification
-- ✅ Przykładowe dane: 3 strefy, 4 urządzenia, role, języki, motywy
-- ✅ Komponenty parametryzowane z pełnym themingiem
-- ✅ Polski jako główny język UI
+1. Fork & branch from `main`
+2. `npm install`
+3. Make changes with tests
+4. Ensure: `npm run lint && npm run type-check && npm test`
+5. Open PR with concise description
+
+## 17. Troubleshooting
+
+| Issue                     | Tip                                                      |
+| ------------------------- | -------------------------------------------------------- |
+| Metro cache oddities      | `rm -rf $TMPDIR/metro-* && npm start --reset-cache`      |
+| iOS build fails (pods)    | Run from `ios/`: `pod install` (if native modules added) |
+| Translations missing      | Ensure key exists or rely on `defaultValue` fallback     |
+| Map not displaying on web | Check Leaflet CSS inclusion & dev console errors         |

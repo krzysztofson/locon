@@ -9,18 +9,31 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigation } from "@react-navigation/native";
+import { Platform } from "react-native";
 import { roleCapabilities } from "../../modules/auth/rbac";
 import { useT } from "../../i18n/I18nextProvider";
 
 export const SettingsScreen: React.FC = () => {
   const { logout, user, setRole } = useAuth();
+  const navigation = useNavigation<any>();
   const { t, changeLanguage, currentLanguage } = useT();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [locationEnabled, setLocationEnabled] = React.useState(true);
 
-  console.log("SettingsScreen: Rendering for user:", user?.email);
-
   const handleLogout = () => {
+    if (Platform.OS === "web") {
+      const confirmed =
+        typeof window !== "undefined"
+          ? window.confirm(t("settings.logoutConfirm"))
+          : true;
+      if (confirmed) {
+        logout().then(() => {
+          navigation.reset({ index: 0, routes: [{ name: "Auth" }] });
+        });
+      }
+      return;
+    }
     Alert.alert(t("settings.logoutTitle"), t("settings.logoutConfirm"), [
       {
         text: t("settings.cancel"),
@@ -29,7 +42,10 @@ export const SettingsScreen: React.FC = () => {
       {
         text: t("settings.confirmLogout"),
         style: "destructive",
-        onPress: logout,
+        onPress: async () => {
+          await logout();
+          navigation.reset({ index: 0, routes: [{ name: "Auth" }] });
+        },
       },
     ]);
   };

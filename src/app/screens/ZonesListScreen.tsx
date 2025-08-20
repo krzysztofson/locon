@@ -275,16 +275,7 @@ export const ZonesListScreen: React.FC = () => {
 
   const [refreshing, setRefreshing] = useState(false);
 
-  console.log(
-    "ZonesListScreen: Rendering, zones:",
-    zones.length,
-    "isLoading:",
-    isLoading
-  );
-
   useEffect(() => {
-    console.log("ZonesListScreen: useEffect triggered, loading data");
-    // Load initial data using async thunk
     dispatch(fetchZonesAsync());
     dispatch(fetchDevicesSuccess(MOCK_DEVICES));
   }, [dispatch]);
