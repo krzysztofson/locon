@@ -1,13 +1,4 @@
-// Test setup configuration
-import '@testing-library/jest-native/extend-expect';
+import "@testing-library/jest-native/extend-expect";
 
-// Mock React Native modules
-jest.mock('react-native', () => ({
-  Platform: {
-    OS: 'ios',
-    select: jest.fn(),
-  },
-  Dimensions: {
-    get: jest.fn(() => ({ width: 375, height: 667 })),
-  },
-}));
+// Basic mock for react-native-reanimated or other native modules if needed
+jest.mock("react-native/Libraries/Animated/NativeAnimatedHelper");
