@@ -4,27 +4,32 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MainTabParamList } from "./types";
 import { HomeScreen, SettingsScreen } from "../screens";
 import { ZonesNavigator } from "./ZonesNavigator";
+import { TestHomeScreen } from "../screens/TestHomeScreen";
+import { TestZonesScreen } from "../screens/TestZonesScreen";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainTabNavigator: React.FC = () => {
+  console.log("MainTabNavigator: Rendering tab navigator");
+
   return (
     <Tab.Navigator
+      sceneContainerStyle={{ flex: 1, backgroundColor: '#fff' }}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#2C5282",
-        tabBarInactiveTintColor: "#999999",
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
+          borderTopColor: "#E2E8F0",
           borderTopWidth: 1,
-          borderTopColor: "#E5E5E5",
-          paddingBottom: 5,
           paddingTop: 5,
+          paddingBottom: 5,
           height: 60,
         },
+        tabBarActiveTintColor: "#2C5282",
+        tabBarInactiveTintColor: "#A0AEC0",
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: "600",
+          fontWeight: "500",
         },
       }}
     >

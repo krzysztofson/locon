@@ -9,7 +9,7 @@ module.exports = {
     rules: [
       {
         test: /\.(js|jsx|ts|tsx)$/,
-        exclude: /node_modules/,
+        exclude: /node_modules\/(?!(react-native-web)\/).*/,
         use: {
           loader: "babel-loader",
           options: {
@@ -38,6 +38,11 @@ module.exports = {
         "react-native-web/dist/vendor/react-native/emitter/EventEmitter",
       "react-native/Libraries/EventEmitter/NativeEventEmitter":
         "react-native-web/dist/vendor/react-native/NativeEventEmitter",
+      // Completely replace react-native-maps with our platform component
+      "react-native-maps$": path.resolve(
+        __dirname,
+        "src/components/PlatformMap.tsx"
+      ),
     },
     extensions: [
       ".web.js",

@@ -15,6 +15,8 @@ export const SettingsScreen: React.FC = () => {
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [locationEnabled, setLocationEnabled] = React.useState(true);
 
+  console.log("SettingsScreen: Rendering for user:", user?.email);
+
   const handleLogout = () => {
     Alert.alert("Wyloguj się", "Czy na pewno chcesz się wylogować?", [
       {
