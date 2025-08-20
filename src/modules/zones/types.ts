@@ -17,6 +17,7 @@ export interface Zone {
     vibration: boolean;
   };
   devices: string[];
+  notificationsByDevice?: Record<string, boolean>; // mapping deviceId -> enabled
   schedule: {
     enabled: boolean;
     activeHours: {
@@ -49,6 +50,7 @@ export interface ZoneCreationData {
     vibration: boolean;
   };
   devices: string[];
+  notificationsByDevice?: Record<string, boolean>;
   schedule: {
     enabled: boolean;
     activeHours: {

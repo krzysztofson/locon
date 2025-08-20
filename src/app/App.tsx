@@ -6,6 +6,7 @@ import { ThemeProvider } from "../theme/ThemeProvider";
 import { I18nProvider } from "../i18n/I18nProvider";
 import { AuthProvider } from "../contexts/AuthContext";
 import { RootNavigator } from "./navigation";
+import { ToastProvider } from "./contexts/ToastContext";
 import { View } from "react-native";
 
 const App = () => {
@@ -15,11 +16,13 @@ const App = () => {
         <ThemeProvider>
           <I18nProvider>
             <AuthProvider>
-              <View style={{ flex: 1 }}>
-                <NavigationContainer>
-                  <RootNavigator />
-                </NavigationContainer>
-              </View>
+              <ToastProvider>
+                <View style={{ flex: 1 }}>
+                  <NavigationContainer>
+                    <RootNavigator />
+                  </NavigationContainer>
+                </View>
+              </ToastProvider>
             </AuthProvider>
           </I18nProvider>
         </ThemeProvider>

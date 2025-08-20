@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
 import { ZonesStackParamList } from "../navigation/types";
+import { useZoneCreatorStore } from "../../state/zoneCreatorStore";
+import MapView, { Circle, Marker } from "../../components/PlatformMap";
 
 type ZoneCreatorStep3NavigationProp = NativeStackNavigationProp<
   ZonesStackParamList,
@@ -24,8 +26,11 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
   const navigation = useNavigation<ZoneCreatorStep3NavigationProp>();
   const route = useRoute<ZoneCreatorStep3RouteProp>();
   const { name, icon, address, coordinates } = route.params;
-
-  const [radius, setRadius] = useState(250);
+  const { zoneDraft, setRadius } = useZoneCreatorStore();
+  const [radius, internalSetRadius] = useState(zoneDraft.radius || 250);
+  useEffect(() => {
+    setRadius(radius);
+  }, [radius, setRadius]);
   const minRadius = 100;
   const maxRadius = 5000;
 
@@ -41,11 +46,23 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
 
   const adjustRadius = (newRadius: number) => {
     const clampedRadius = Math.max(minRadius, Math.min(maxRadius, newRadius));
-    setRadius(clampedRadius);
+    internalSetRadius(clampedRadius);
   };
 
   const radiusPercentage =
     ((radius - minRadius) / (maxRadius - minRadius)) * 100;
+
+  const trackRef = useRef<View | null>(null);
+
+  const handleTrackPress = (evt: any) => {
+    if (!trackRef.current) return;
+    trackRef.current.measure((_x, _y, width, _h, pageX) => {
+      const clickX = evt.nativeEvent.pageX - pageX;
+      const ratio = Math.max(0, Math.min(1, clickX / width));
+      const newRadius = Math.round(minRadius + ratio * (maxRadius - minRadius));
+      adjustRadius(newRadius);
+    });
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -59,10 +76,33 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
 
         <View style={styles.mapContainer}>
           <View style={styles.mapPlaceholder}>
-            <Text style={styles.mapText}>[PODGLĄD MAPY]</Text>
-            <Text style={styles.mapIcon}>📍</Text>
-            <View style={styles.radiusCircle}>
-              <Text style={styles.radiusText}>{radius}m</Text>
+            <MapView
+              style={{ flex: 1, alignSelf: "stretch" }}
+              initialRegion={{
+                latitude: coordinates.lat,
+                longitude: coordinates.lng,
+                latitudeDelta: 0.02,
+                longitudeDelta: 0.02,
+              }}
+            >
+              <Marker
+                coordinate={{
+                  latitude: coordinates.lat,
+                  longitude: coordinates.lng,
+                }}
+              />
+              <Circle
+                center={{
+                  latitude: coordinates.lat,
+                  longitude: coordinates.lng,
+                }}
+                radius={radius}
+                strokeColor="#2C5282"
+                fillColor="rgba(44,82,130,0.15)"
+              />
+            </MapView>
+            <View style={styles.radiusOverlay}>
+              <Text style={styles.radiusOverlayText}>{radius} m</Text>
             </View>
           </View>
         </View>
@@ -71,7 +111,16 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
         <Text style={styles.radiusValue}>{radius} m</Text>
 
         <View style={styles.sliderContainer}>
-          <View style={styles.sliderTrack}>
+          <View
+            ref={trackRef}
+            onStartShouldSetResponder={() => true}
+            onResponderGrant={handleTrackPress}
+            onResponderMove={handleTrackPress}
+            style={styles.sliderTrack}
+            accessibilityRole="adjustable"
+            accessibilityLabel="Promień strefy"
+            accessibilityValue={{ text: `${radius} metrów` }}
+          >
             <View
               style={[styles.sliderFill, { width: `${radiusPercentage}%` }]}
             />
@@ -87,19 +136,44 @@ export const ZoneCreatorStep3Screen: React.FC = () => {
 
         <View style={styles.radiusControls}>
           <TouchableOpacity
-            style={styles.radiusButton}
+            style={[
+              styles.radiusButton,
+              radius <= minRadius && styles.radiusButtonDisabled,
+            ]}
             onPress={() => adjustRadius(radius - 50)}
             disabled={radius <= minRadius}
           >
-            <Text style={styles.radiusButtonText}>-</Text>
+            <Text style={styles.radiusButtonText}>-50</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
-            style={styles.radiusButton}
+            style={[
+              styles.radiusButton,
+              radius <= minRadius && styles.radiusButtonDisabled,
+            ]}
+            onPress={() => adjustRadius(radius - 10)}
+            disabled={radius <= minRadius}
+          >
+            <Text style={styles.radiusButtonText}>-10</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.radiusButton,
+              radius >= maxRadius && styles.radiusButtonDisabled,
+            ]}
+            onPress={() => adjustRadius(radius + 10)}
+            disabled={radius >= maxRadius}
+          >
+            <Text style={styles.radiusButtonText}>+10</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.radiusButton,
+              radius >= maxRadius && styles.radiusButtonDisabled,
+            ]}
             onPress={() => adjustRadius(radius + 50)}
             disabled={radius >= maxRadius}
           >
-            <Text style={styles.radiusButtonText}>+</Text>
+            <Text style={styles.radiusButtonText}>+50</Text>
           </TouchableOpacity>
         </View>
 
@@ -150,12 +224,10 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   mapPlaceholder: {
-    height: 200,
+    height: 220,
     backgroundColor: "#E5E5E5",
     borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
+    overflow: "hidden",
   },
   mapText: {
     fontSize: 16,
@@ -165,22 +237,16 @@ const styles = StyleSheet.create({
   mapIcon: {
     fontSize: 30,
   },
-  radiusCircle: {
+  radiusOverlay: {
     position: "absolute",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: "#2C5282",
-    borderStyle: "dashed",
-    justifyContent: "center",
-    alignItems: "center",
+    top: 8,
+    left: 8,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  radiusText: {
-    fontSize: 12,
-    color: "#2C5282",
-    fontWeight: "bold",
-  },
+  radiusOverlayText: { color: "#FFF", fontSize: 12, fontWeight: "600" },
   radiusLabel: {
     fontSize: 16,
     color: "#333333",
@@ -231,13 +297,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   radiusButton: {
-    width: 50,
-    height: 50,
+    minWidth: 54,
+    paddingHorizontal: 10,
+    height: 44,
     backgroundColor: "#2C5282",
-    borderRadius: 25,
+    borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
   },
+  radiusButtonDisabled: { opacity: 0.4 },
   radiusButtonText: {
     color: "#FFFFFF",
     fontSize: 24,

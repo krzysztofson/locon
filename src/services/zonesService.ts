@@ -39,6 +39,7 @@ class ZonesService {
           devices: Object.keys(mockZone.notificationsByDevice).filter(
             (deviceId) => mockZone.notificationsByDevice[deviceId]
           ),
+          notificationsByDevice: { ...mockZone.notificationsByDevice },
           schedule: {
             enabled: false,
             activeHours: { start: "00:00", end: "23:59" },
@@ -105,6 +106,7 @@ class ZonesService {
       id: `zone_${Date.now()}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      notificationsByDevice: (zoneData as any).notificationsByDevice || {},
     };
 
     this.zones.push(newZone);

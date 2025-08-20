@@ -7,12 +7,13 @@ import {
   RefreshControl,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ZonesStackParamList } from "../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
-import { refreshZones } from "../../state/slices/zonesSlice";
+import { refreshZones, removeZone } from "../../state/slices/zonesSlice";
 import {
   fetchZonesAsync,
   toggleZoneActiveAsync,
@@ -27,6 +28,7 @@ import { Card } from "../../components/themed/Card";
 import { Switch } from "../../components/themed/Switch";
 import { Modal } from "../../components/themed/Modal";
 import { IconButton } from "../../components/themed/IconButton";
+import { useToast } from "../contexts/ToastContext";
 
 type ZonesListNavigationProp = NativeStackNavigationProp<
   ZonesStackParamList,
@@ -40,6 +42,8 @@ interface ZoneCardProps {
   onDelete: (zoneId: string) => void;
   onPress: (zoneId: string) => void;
   devices: any[];
+  totalDevices: number;
+  notificationsByDevice: Record<string, boolean>;
 }
 
 const ZoneCard: React.FC<ZoneCardProps> = ({
@@ -49,8 +53,11 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
   onDelete,
   onPress,
   devices,
+  totalDevices,
+  notificationsByDevice,
 }) => {
   const [showActionsModal, setShowActionsModal] = useState(false);
+  const isPending = zone.id.startsWith("tmp_");
 
   const getZoneIcon = (type?: string) => {
     switch (type) {
@@ -66,10 +73,11 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
   };
 
   const getDevicesWithNotifications = () => {
-    // Mock implementation - count devices with notifications enabled for this zone
-    const activeDevices = devices.filter((device) => device.isActive);
-    const notificationCount = Math.min(activeDevices.length, 3); // Mock: up to 3 devices
-    return `${notificationCount}/${activeDevices.length}`;
+    const activeDevices = devices.filter((d) => d.isActive);
+    const enabled = activeDevices.filter(
+      (d) => notificationsByDevice[d.id] !== false
+    ).length; // default true
+    return `${enabled}/${totalDevices}`;
   };
 
   const handleToggleActive = () => {
@@ -87,6 +95,11 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
 
   const handleDelete = () => {
     setShowActionsModal(false);
+    if (Platform.OS === "web") {
+      // Alert on web can be inconsistent; delete immediately
+      onDelete(zone.id);
+      return;
+    }
     Alert.alert(
       "Usuń strefę",
       `Czy na pewno chcesz usunąć strefę "${zone.name}"?`,
@@ -103,7 +116,11 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
 
   return (
     <>
-      <Card style={styles.zoneCard}>
+      <Card
+        style={
+          [styles.zoneCard as any, isPending && styles.zoneCardPending] as any
+        }
+      >
         <TouchableOpacity
           style={styles.zoneCardContent}
           onPress={() => onPress(zone.id)}
@@ -124,6 +141,11 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
               <Text variant="caption" style={styles.zoneDevices}>
                 Powiadomienia: {getDevicesWithNotifications()}
               </Text>
+              {isPending && (
+                <Text variant="caption" style={styles.pendingText}>
+                  Zapisywanie...
+                </Text>
+              )}
             </View>
 
             <View style={styles.zoneActions}>
@@ -151,6 +173,7 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
         title="Akcje strefy"
         size="sm"
         showCloseButton
+  showFooter
         footerActions={[
           {
             label: "Edytuj",
@@ -220,9 +243,14 @@ const EmptyState: React.FC<{ onAddZone: () => void }> = ({ onAddZone }) => (
 export const ZonesListScreen: React.FC = () => {
   const navigation = useNavigation<ZonesListNavigationProp>();
   const dispatch = useAppDispatch();
+  const { showToast } = useToast();
 
   const { zones, isLoading, error } = useAppSelector((state) => state.zones);
   const { devices } = useAppSelector((state) => state.devices);
+  const totalDevices = devices.length || 0;
+
+  const PAGE_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -244,8 +272,10 @@ export const ZonesListScreen: React.FC = () => {
     setRefreshing(true);
     try {
       await dispatch(fetchZonesAsync()).unwrap();
+      showToast("Odświeżono strefy", "success");
     } catch (error) {
       console.error("Failed to refresh zones:", error);
+      showToast("Nie udało się odświeżyć stref", "error");
     } finally {
       setRefreshing(false);
     }
@@ -260,11 +290,19 @@ export const ZonesListScreen: React.FC = () => {
   };
 
   const handleToggleZoneActive = async (zoneId: string) => {
+    // optimistic
+    const prev = zones.find((z) => z.id === zoneId)?.isActive;
+    dispatch({ type: "zones/toggleZoneActive", payload: zoneId });
     try {
       await dispatch(toggleZoneActiveAsync(zoneId)).unwrap();
+      showToast("Zmieniono status strefy", "success");
     } catch (error) {
+      // rollback
+      if (prev !== undefined) {
+        dispatch({ type: "zones/toggleZoneActive", payload: zoneId });
+      }
       console.error("Failed to toggle zone active:", error);
-      // Could show a toast or error message here
+      showToast("Nie udało się zmienić stanu strefy", "error");
     }
   };
 
@@ -273,24 +311,36 @@ export const ZonesListScreen: React.FC = () => {
   };
 
   const handleDeleteZone = async (zoneId: string) => {
+    // Jeśli to strefa tymczasowa (optymistyczna), usuń lokalnie
+    if (zoneId.startsWith("tmp_")) {
+      dispatch(removeZone(zoneId));
+      showToast("Anulowano tworzenie strefy", "info");
+      return;
+    }
     try {
       await dispatch(deleteZoneAsync(zoneId)).unwrap();
+      showToast("Usunięto strefę", "success");
     } catch (error) {
       console.error("Failed to delete zone:", error);
-      // Could show a toast or error message here
+      showToast("Nie udało się usunąć strefy", "error");
     }
   };
 
-  const renderZoneItem = ({ item }: { item: Zone }) => (
-    <ZoneCard
-      zone={item}
-      onToggleActive={handleToggleZoneActive}
-      onEdit={handleEditZone}
-      onDelete={handleDeleteZone}
-      onPress={handleZonePress}
-      devices={devices}
-    />
-  );
+  const renderZoneItem = ({ item }: { item: Zone }) => {
+    const perZoneNotifications = item.notificationsByDevice || {};
+    return (
+      <ZoneCard
+        zone={item}
+        onToggleActive={handleToggleZoneActive}
+        onEdit={handleEditZone}
+        onDelete={handleDeleteZone}
+        onPress={handleZonePress}
+        devices={devices}
+        totalDevices={totalDevices}
+        notificationsByDevice={perZoneNotifications}
+      />
+    );
+  };
 
   const renderEmptyComponent = () => <EmptyState onAddZone={handleAddZone} />;
 
@@ -332,12 +382,12 @@ export const ZonesListScreen: React.FC = () => {
   return (
     <FlatList
       style={styles.container}
-      data={zones}
+      data={zones.slice(0, visibleCount)}
       renderItem={renderZoneItem}
       keyExtractor={(item) => item.id}
       ListHeaderComponent={renderHeader}
       ListEmptyComponent={renderEmptyComponent}
-      ListFooterComponent={renderFooter}
+      // Footer handled dynamically below
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -352,11 +402,19 @@ export const ZonesListScreen: React.FC = () => {
       // Lazy loading - in real app would implement pagination
       onEndReachedThreshold={0.1}
       onEndReached={() => {
-        // Load more zones if count > 20
-        if (zones.length > 20) {
-          console.log("Load more zones...");
+        if (visibleCount < zones.length) {
+          setVisibleCount((c) => Math.min(c + PAGE_SIZE, zones.length));
         }
       }}
+      ListFooterComponent={
+        zones.length > visibleCount ? (
+          <View style={{ padding: 16 }}>
+            <ActivityIndicator />
+          </View>
+        ) : (
+          renderFooter()
+        )
+      }
     />
   );
 };
@@ -398,6 +456,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 6,
   },
+  zoneCardPending: {
+    opacity: 0.6,
+  },
   zoneCardContent: {
     padding: 16,
   },
@@ -425,16 +486,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#333333",
-    marginBottom: 4,
+    marginBottom: 24,
   },
   zoneRadius: {
     fontSize: 14,
     color: "#666666",
-    marginBottom: 2,
+    marginBottom: 16,
   },
   zoneDevices: {
     fontSize: 14,
     color: "#666666",
+    marginBottom: 12,
+  },
+  pendingText: {
+    fontSize: 12,
+    color: "#2C5282",
+    marginTop: 2,
   },
   zoneActions: {
     alignItems: "center",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,13 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
 import { ZonesStackParamList } from "../navigation/types";
+import {
+  geocodingService,
+  GeocodeResult,
+} from "../../services/geocodingService";
+import { useZoneCreatorStore } from "../../state/zoneCreatorStore";
+import MapView, { Marker } from "../../components/PlatformMap";
+import { Platform } from "react-native";
 
 type ZoneCreatorStep2NavigationProp = NativeStackNavigationProp<
   ZonesStackParamList,
@@ -25,24 +32,89 @@ export const ZoneCreatorStep2Screen: React.FC = () => {
   const navigation = useNavigation<ZoneCreatorStep2NavigationProp>();
   const route = useRoute<ZoneCreatorStep2RouteProp>();
   const { name, icon } = route.params;
+  const { zoneDraft, setCenter } = useZoneCreatorStore();
+  const [address, setAddress] = useState(
+    zoneDraft.center
+      ? zoneDraft.center.lat.toFixed(4) + "," + zoneDraft.center.lng.toFixed(4)
+      : ""
+  );
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<GeocodeResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [mapRegion, setMapRegion] = useState({
+    latitude: zoneDraft.center?.lat || 52.2297,
+    longitude: zoneDraft.center?.lng || 21.0122,
+    latitudeDelta: 0.02,
+    longitudeDelta: 0.02,
+  });
 
-  const [address, setAddress] = useState("");
+  // fetch suggestions debounce
+  useEffect(() => {
+    let active = true;
+    if (query.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    setLoading(true);
+    geocodingService.autocomplete(query).then((res) => {
+      if (active) {
+        setSuggestions(res);
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [query]);
+
+  const selectSuggestion = (item: GeocodeResult) => {
+    setQuery(item.address);
+    setSuggestions([]);
+    setCenter({ lat: item.lat, lng: item.lng });
+    setMapRegion((r) => ({ ...r, latitude: item.lat, longitude: item.lng }));
+  };
+
+  const handleDragEnd = (e: any) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    setCenter({ lat: latitude, lng: longitude });
+    geocodingService
+      .reverse(latitude, longitude)
+      .then((r) => setQuery(r.address));
+  };
+
+  const useMyLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords as any;
+          setCenter({ lat: latitude, lng: longitude });
+          setMapRegion((r) => ({ ...r, latitude, longitude }));
+          geocodingService
+            .reverse(latitude, longitude)
+            .then((r) => setQuery(r.address));
+        },
+        () => {
+          // fallback
+          setCenter({ lat: 52.2297, lng: 21.0122 });
+        }
+      );
+    } else {
+      setCenter({ lat: 52.2297, lng: 21.0122 });
+    }
+  };
 
   const handleNext = () => {
-    if (address.trim()) {
-      // In a real app, we would geocode the address here
-      const mockCoordinates = { lat: 52.2297, lng: 21.0122 }; // Warsaw coordinates
-
+    if (zoneDraft.center) {
       navigation.navigate("ZoneCreatorStep3", {
         name,
         icon,
-        address: address.trim(),
-        coordinates: mockCoordinates,
+        address: query || "Nieznany adres",
+        coordinates: { lat: zoneDraft.center.lat, lng: zoneDraft.center.lng },
       });
     }
   };
 
-  const canContinue = address.trim().length > 0;
+  const canContinue = !!zoneDraft.center;
 
   return (
     <ScrollView style={styles.container}>
@@ -57,23 +129,63 @@ export const ZoneCreatorStep2Screen: React.FC = () => {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Wpisz adres"
-            value={address}
-            onChangeText={setAddress}
+            placeholder="Wpisz adres lub miejsce"
+            value={query}
+            onChangeText={setQuery}
             placeholderTextColor="#999999"
           />
+          {loading && <Text style={styles.loadingText}>Szukam...</Text>}
+          {suggestions.length > 0 && (
+            <View style={styles.suggestionsBox}>
+              {suggestions.map((s) => (
+                <TouchableOpacity
+                  key={s.address}
+                  style={styles.suggestionItem}
+                  onPress={() => selectSuggestion(s)}
+                >
+                  <Text style={styles.suggestionText}>{s.address}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.mapContainer}>
-          <View style={styles.mapPlaceholder}>
-            <Text style={styles.mapText}>[MAPA GOOGLE]</Text>
-            <Text style={styles.mapIcon}>📍</Text>
+          <View style={styles.mapWrapper}>
+            <MapView
+              style={{ flex: 1 }}
+              initialRegion={mapRegion}
+              region={mapRegion}
+              onRegionChangeComplete={(r: any) => setMapRegion(r)}
+            >
+              {zoneDraft.center && (
+                <Marker
+                  coordinate={{
+                    latitude: zoneDraft.center.lat,
+                    longitude: zoneDraft.center.lng,
+                  }}
+                  draggable
+                  onDragEnd={handleDragEnd}
+                />
+              )}
+            </MapView>
+            {!zoneDraft.center && (
+              <View style={styles.centerOverlay}>
+                <Text style={styles.centerHint}>
+                  Przeciągnij / wybierz adres
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
         <Text style={styles.hint}>
-          Przesuń znacznik na mapie lub wpisz dokładny adres
+          Wpisz adres, wybierz z listy lub użyj lokalizacji.
         </Text>
+
+        <TouchableOpacity style={styles.geoButton} onPress={useMyLocation}>
+          <Text style={styles.geoButtonText}>Użyj mojej lokalizacji</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.nextButton, !canContinue && styles.disabledButton]}
@@ -135,6 +247,53 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E5E5",
   },
+  loadingText: { fontSize: 12, color: "#666", marginTop: 4 },
+  suggestionsBox: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 8,
+    marginTop: 6,
+    overflow: "hidden",
+  },
+  suggestionItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  suggestionText: { fontSize: 14, color: "#2D3748" },
+  mapWrapper: {
+    height: 240,
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: "#E5E5E5",
+  },
+  centerOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    pointerEvents: "none",
+  },
+  centerHint: {
+    backgroundColor: "rgba(0,0,0,0.55)",
+    color: "#FFF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    fontSize: 12,
+  },
+  geoButton: {
+    backgroundColor: "#2C5282",
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 25,
+  },
+  geoButtonText: { color: "#FFF", textAlign: "center", fontWeight: "600" },
   mapContainer: {
     marginBottom: 20,
   },

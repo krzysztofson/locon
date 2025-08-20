@@ -4,9 +4,9 @@ import { HomeMapScreen } from "./HomeMapScreen";
 
 export const HomeScreen: React.FC = () => {
   try {
-  return <HomeMapScreen />;
+    return <HomeMapScreen />;
   } catch (error) {
-  return null;
+    return null;
   }
 };
 

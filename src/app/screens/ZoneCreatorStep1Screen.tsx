@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -7,6 +7,10 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
+import { useForm, Controller, FieldValues } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useZoneCreatorStore } from "../../state/zoneCreatorStore";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ZonesStackParamList } from "../navigation/types";
@@ -16,10 +20,27 @@ type ZoneCreatorStep1NavigationProp = NativeStackNavigationProp<
   "ZoneCreatorStep1"
 >;
 
+const schema = z.object({
+  name: z
+    .string()
+    .min(2, "Nazwa musi mieć co najmniej 2 znaki")
+    .max(40, "Maksymalnie 40 znaków"),
+});
+
+type FormValues = z.infer<typeof schema>;
+
 export const ZoneCreatorStep1Screen: React.FC = () => {
   const navigation = useNavigation<ZoneCreatorStep1NavigationProp>();
-  const [zoneName, setZoneName] = useState("");
-  const [selectedIcon, setSelectedIcon] = useState("🏠");
+  const { setNameIcon, zoneDraft } = useZoneCreatorStore();
+  const [selectedIcon, setSelectedIcon] = React.useState<string>(
+    zoneDraft.icon || "🏠"
+  );
+
+  const { control, handleSubmit, formState } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: zoneDraft.name || "" },
+    mode: "onChange",
+  });
 
   const icons = [
     "🏠",
@@ -56,16 +77,15 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
     "🚁",
   ];
 
-  const handleNext = () => {
-    if (zoneName.trim() && selectedIcon) {
-      navigation.navigate("ZoneCreatorStep2", {
-        name: zoneName.trim(),
-        icon: selectedIcon,
-      });
-    }
+  const onSubmit = (data: FormValues) => {
+    setNameIcon(data.name.trim(), selectedIcon);
+    navigation.navigate("ZoneCreatorStep2", {
+      name: data.name.trim(),
+      icon: selectedIcon,
+    });
   };
 
-  const canContinue = zoneName.trim().length > 0;
+  const canContinue = formState.isValid;
 
   return (
     <ScrollView style={styles.container}>
@@ -78,13 +98,28 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
         <Text style={styles.title}>Nadaj nazwę strefie</Text>
 
         <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Wpisz nazwę"
-            value={zoneName}
-            onChangeText={setZoneName}
-            placeholderTextColor="#999999"
+          <Controller
+            control={control}
+            name="name"
+            render={({ field: { value, onChange, onBlur } }: any) => (
+              <TextInput
+                style={[
+                  styles.input,
+                  formState.errors.name && styles.inputError,
+                ]}
+                placeholder="Wpisz nazwę"
+                value={value}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                placeholderTextColor="#999999"
+              />
+            )}
           />
+          {formState.errors.name && (
+            <Text style={styles.errorText}>
+              {formState.errors.name.message}
+            </Text>
+          )}
         </View>
 
         <Text style={styles.sectionTitle}>Wybierz ikonę</Text>
@@ -106,7 +141,7 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
 
         <TouchableOpacity
           style={[styles.nextButton, !canContinue && styles.disabledButton]}
-          onPress={handleNext}
+          onPress={handleSubmit(onSubmit)}
           disabled={!canContinue}
         >
           <Text
@@ -163,6 +198,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#E5E5E5",
+  },
+  inputError: {
+    borderColor: "#E53E3E",
+  },
+  errorText: {
+    color: "#E53E3E",
+    fontSize: 12,
+    marginTop: 6,
   },
   sectionTitle: {
     fontSize: 18,

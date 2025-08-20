@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,11 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
 import { ZonesStackParamList } from "../navigation/types";
+import { useZoneCreatorStore } from "../../state/zoneCreatorStore";
+import { useAppDispatch, useAppSelector } from "../../state/hooks";
+import { createZoneAsync } from "../../state/slices/zonesThunks";
+import { addZone, removeZone } from "../../state/slices/zonesSlice";
+import { useToast } from "../contexts/ToastContext";
 
 type ZoneCreatorStep4NavigationProp = NativeStackNavigationProp<
   ZonesStackParamList,
@@ -33,6 +38,10 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
   const navigation = useNavigation<ZoneCreatorStep4NavigationProp>();
   const route = useRoute<ZoneCreatorStep4RouteProp>();
   const { name, icon, address, coordinates, radius } = route.params;
+  const { zoneDraft, setNotifications, reset } = useZoneCreatorStore();
+  const dispatch = useAppDispatch();
+  const { showToast } = useToast();
+  const devicesFromStore = useAppSelector((s) => s.devices.devices);
 
   // Mock devices data
   const devices: Device[] = [
@@ -59,33 +68,87 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
     },
   ];
 
-  const [notifications, setNotifications] = useState<{
-    [key: string]: boolean;
-  }>({
-    "1": true,
-    "2": false,
-    "3": true,
-  });
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    // initialize notifications if empty
+    if (
+      devicesFromStore.length &&
+      Object.keys(zoneDraft.notificationsByDevice).length === 0
+    ) {
+      devicesFromStore.forEach((d) => setNotifications(d.id, true));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [devicesFromStore]);
 
   const handleNotificationToggle = (deviceId: string) => {
-    setNotifications((prev) => ({
-      ...prev,
-      [deviceId]: !prev[deviceId],
-    }));
+    const current = zoneDraft.notificationsByDevice[deviceId];
+    setNotifications(deviceId, !current);
   };
 
-  const handleSave = () => {
-    // In a real app, we would save the zone here
-    console.log("Saving zone:", {
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    // optimistic object
+    const optimisticId = `tmp_${Date.now()}`;
+    const base = {
+      id: optimisticId,
       name,
-      icon,
+      description: `Strefa ${name}`,
+      type: "other" as const,
+      coordinates: {
+        latitude: coordinates.lat,
+        longitude: coordinates.lng,
+        radius,
+      },
       address,
-      coordinates,
-      radius,
-      notifications,
-    });
-
-    navigation.navigate("ZoneCreatorSuccess");
+      isActive: true,
+      notifications: {
+        onEntry: true,
+        onExit: true,
+        sound: true,
+        vibration: true,
+      },
+      devices: Object.keys(zoneDraft.notificationsByDevice).filter(
+        (k) => zoneDraft.notificationsByDevice[k]
+      ),
+      schedule: {
+        enabled: false,
+        activeHours: { start: "00:00", end: "23:59" },
+        activeDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: "user1",
+      color: "#4CAF50",
+    };
+    dispatch(addZone(base as any));
+    try {
+      const created = await dispatch(
+        createZoneAsync({
+          name: base.name,
+          description: base.description,
+          type: base.type,
+          coordinates: base.coordinates,
+          address: base.address,
+          isActive: base.isActive,
+          notifications: base.notifications,
+          devices: base.devices,
+          notificationsByDevice: { ...zoneDraft.notificationsByDevice },
+          schedule: base.schedule,
+          color: base.color,
+        } as any)
+      ).unwrap();
+      // remove optimistic (will remain final created via fulfilled push) => optional cleanup
+      dispatch(removeZone(optimisticId));
+      showToast("Strefa utworzona", "success");
+      navigation.navigate("ZoneCreatorSuccess");
+      reset();
+    } catch (e) {
+      dispatch(removeZone(optimisticId));
+      showToast("Nie udało się utworzyć strefy", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -118,10 +181,14 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
               <View style={styles.notificationToggle}>
                 <Text style={styles.toggleLabel}>Włącz powiadomienia</Text>
                 <Switch
-                  value={notifications[device.id]}
+                  value={zoneDraft.notificationsByDevice[device.id] ?? true}
                   onValueChange={() => handleNotificationToggle(device.id)}
                   trackColor={{ false: "#E5E5E5", true: "#50C878" }}
-                  thumbColor={notifications[device.id] ? "#FFFFFF" : "#FFFFFF"}
+                  thumbColor={
+                    zoneDraft.notificationsByDevice[device.id] ?? true
+                      ? "#FFFFFF"
+                      : "#FFFFFF"
+                  }
                 />
               </View>
             </View>
@@ -136,8 +203,14 @@ export const ZoneCreatorStep4Screen: React.FC = () => {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Zapisz</Text>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSave}
+          disabled={saving}
+        >
+          <Text style={styles.saveButtonText}>
+            {saving ? "Zapisywanie..." : "Zapisz"}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

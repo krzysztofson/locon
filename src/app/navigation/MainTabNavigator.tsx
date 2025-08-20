@@ -14,7 +14,7 @@ export const MainTabNavigator: React.FC = () => {
 
   return (
     <Tab.Navigator
-      sceneContainerStyle={{ flex: 1, backgroundColor: '#fff' }}
+      sceneContainerStyle={{ flex: 1, backgroundColor: "#fff" }}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {

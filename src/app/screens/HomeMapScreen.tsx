@@ -12,7 +12,8 @@ import { DeviceCarousel } from "../../components/DeviceCarousel";
 import { ZoneBottomSheet } from "../../components/ZoneBottomSheet";
 import { FloatingActionButtons } from "../../components/FloatingActionButtons";
 import { Device, Zone } from "../../types";
-import { MOCK_DEVICES, MOCK_ZONES } from "../../data";
+import { MOCK_DEVICES, MOCK_ZONES } from "../../data"; // fallback if store empty
+import { useAppSelector } from "../../state/hooks";
 
 // Define Region interface for cross-platform compatibility
 interface Region {
@@ -28,7 +29,10 @@ export const HomeMapScreen: React.FC = () => {
   const mapRef = useRef<any>(null);
 
   // State
-  const [zones] = useState<Zone[]>(MOCK_ZONES);
+  const zonesFromStore = useAppSelector((s) => (s as any).zones?.zones || []);
+  const zones: Zone[] = zonesFromStore.length
+    ? zonesFromStore
+    : (MOCK_ZONES as any);
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [isZoneSheetVisible, setIsZoneSheetVisible] = useState(false);
 
@@ -162,7 +166,12 @@ export const HomeMapScreen: React.FC = () => {
   // Basic guard so we always render something
   if (!selectedDevice) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}> 
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <Text>Ładowanie danych urządzeń...</Text>
       </View>
     );

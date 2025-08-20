@@ -16,6 +16,11 @@ export const ZoneCreatorSuccessScreen: React.FC = () => {
     navigation.navigate("ZonesList");
   };
 
+  const handleGoToMap = () => {
+    // @ts-ignore navigate to tab
+    navigation.navigate("HomeTab");
+  };
+
   const handleAddAnother = () => {
     navigation.navigate("ZoneCreatorStep1");
   };
@@ -39,6 +44,13 @@ export const ZoneCreatorSuccessScreen: React.FC = () => {
           onPress={handleGoToZones}
         >
           <Text style={styles.primaryButtonText}>Przejdź do stref</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryAltButton}
+          onPress={handleGoToMap}
+        >
+          <Text style={styles.secondaryAltButtonText}>Zobacz na mapie</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -107,7 +119,24 @@ const styles = StyleSheet.create({
     borderColor: "#2C5282",
     width: "100%",
   },
+  secondaryAltButton: {
+    backgroundColor: "transparent",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#2C5282",
+    width: "100%",
+    marginTop: 12,
+    marginBottom: 12,
+  },
   secondaryButtonText: {
+    color: "#2C5282",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  secondaryAltButtonText: {
     color: "#2C5282",
     fontSize: 16,
     fontWeight: "bold",
