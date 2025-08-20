@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { authSlice } from "../state/slices/authSlice";
 import { authService } from "../modules/auth/AuthService";
 import { User } from "../modules/auth/types";
 
@@ -9,6 +11,7 @@ interface AuthContextType {
   verifyOTP: (phone: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
   user: User | null;
+  setRole: (role: User["role"]) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +32,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     checkAuthState();
@@ -41,11 +45,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (isAuth) {
         const userData = await authService.getCurrentUser();
-        setUser(userData);
-        setIsAuthenticated(true);
+        if (userData) {
+          setUser(userData);
+          setIsAuthenticated(true);
+          dispatch(authSlice.actions.loginSuccess(userData as User));
+        }
       } else {
         setIsAuthenticated(false);
         setUser(null);
+        dispatch(authSlice.actions.logout());
       }
     } catch (error) {
       console.error("Error checking auth state:", error);
@@ -96,6 +104,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const setRole = (role: User["role"]) => {
+    setUser((prev) => {
+      const base = prev || {
+        id: "local-admin",
+        name: "Admin",
+        email: "admin@example.com",
+        phone: "+48000000000",
+        role: "admin" as const,
+      };
+      return { ...base, role } as User;
+    });
+    setIsAuthenticated(true);
+    // Dispatch sync after state update microtask
+    setTimeout(() => {
+      const u = user || {
+        id: "local-admin",
+        name: "Admin",
+        email: "admin@example.com",
+        phone: "+48000000000",
+        role: "admin" as const,
+      };
+      dispatch(authSlice.actions.loginSuccess({ ...u, role } as User));
+    }, 0);
+  };
+
+  // Default to admin if no user (development convenience)
+  useEffect(() => {
+    if (!user && !isLoading) {
+      setRole("admin");
+    }
+  }, [user, isLoading]);
+
   const value: AuthContextType = {
     isAuthenticated,
     isLoading,
@@ -103,6 +143,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     verifyOTP,
     logout,
     user,
+    setRole,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -9,9 +9,10 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
+import { roleCapabilities } from "../../modules/auth/rbac";
 
 export const SettingsScreen: React.FC = () => {
-  const { logout, user } = useAuth();
+  const { logout, user, setRole } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [locationEnabled, setLocationEnabled] = React.useState(true);
 
@@ -46,6 +47,27 @@ export const SettingsScreen: React.FC = () => {
                 ? "Użytkownik"
                 : "Przeglądający"}
             </Text>
+            <View style={styles.rolesRow}>
+              {(["admin", "user", "viewer"] as const).map((r) => (
+                <TouchableOpacity
+                  key={r}
+                  style={[
+                    styles.rolePill,
+                    user.role === r && styles.rolePillActive,
+                  ]}
+                  onPress={() => setRole(r)}
+                >
+                  <Text
+                    style={[
+                      styles.rolePillText,
+                      user.role === r && styles.rolePillTextActive,
+                    ]}
+                  >
+                    {r}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         )}
 
@@ -176,6 +198,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#2C5282",
     fontWeight: "600",
+  },
+  rolesRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 12,
+    gap: 8,
+  },
+  rolePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: "#E2E8F0",
+  },
+  rolePillActive: {
+    backgroundColor: "#2C5282",
+  },
+  rolePillText: {
+    color: "#2C5282",
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  rolePillTextActive: {
+    color: "#fff",
   },
   section: {
     marginBottom: 30,

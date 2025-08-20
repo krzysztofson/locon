@@ -11,6 +11,8 @@ import { useForm, Controller, FieldValues } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useZoneCreatorStore } from "../../state/zoneCreatorStore";
+import { useAppSelector } from "../../state/hooks";
+import { isViewer } from "../../modules/auth/rbac";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ZonesStackParamList } from "../navigation/types";
@@ -35,6 +37,8 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
   const [selectedIcon, setSelectedIcon] = React.useState<string>(
     zoneDraft.icon || "🏠"
   );
+  const user = useAppSelector((s) => s.auth.user);
+  const viewer = isViewer(user);
 
   const { control, handleSubmit, formState } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -86,6 +90,21 @@ export const ZoneCreatorStep1Screen: React.FC = () => {
   };
 
   const canContinue = formState.isValid;
+
+  if (viewer) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <Text style={{ fontSize: 16, padding: 24, textAlign: "center" }}>
+          Twoja rola (Viewer) nie pozwala na tworzenie stref.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>

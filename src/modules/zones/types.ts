@@ -1,6 +1,7 @@
 export interface Zone {
   id: string;
   name: string;
+  icon?: string;
   description: string;
   type: "home" | "school" | "work" | "other";
   coordinates: {
@@ -34,6 +35,7 @@ export interface Zone {
 
 export interface ZoneCreationData {
   name: string;
+  icon?: string;
   description: string;
   type: "home" | "school" | "work" | "other";
   coordinates: {

@@ -14,6 +14,7 @@ import { FloatingActionButtons } from "../../components/FloatingActionButtons";
 import { Device, Zone } from "../../types";
 import { MOCK_DEVICES, MOCK_ZONES } from "../../data"; // fallback if store empty
 import { useAppSelector } from "../../state/hooks";
+import { can } from "../../modules/auth/rbac";
 
 // Define Region interface for cross-platform compatibility
 interface Region {
@@ -30,6 +31,8 @@ export const HomeMapScreen: React.FC = () => {
 
   // State
   const zonesFromStore = useAppSelector((s) => (s as any).zones?.zones || []);
+  const authUser = useAppSelector((s) => s.auth.user);
+  const canCreateZones = can(authUser, "create", "zones");
   const zones: Zone[] = zonesFromStore.length
     ? zonesFromStore
     : (MOCK_ZONES as any);
@@ -259,11 +262,13 @@ export const HomeMapScreen: React.FC = () => {
           ))}
       </MapView>
 
-      <FloatingActionButtons
-        onAddZone={handleAddZone}
-        onZonesList={handleZonesList}
-        onSettings={handleSettings}
-      />
+      {canCreateZones && (
+        <FloatingActionButtons
+          onAddZone={handleAddZone}
+          onZonesList={handleZonesList}
+          onSettings={handleSettings}
+        />
+      )}
 
       <ZoneBottomSheet
         zone={selectedZone}

@@ -20,6 +20,7 @@ import {
   deleteZoneAsync,
 } from "../../state/slices/zonesThunks";
 import { Zone } from "../../modules/zones/types";
+import { can } from "../../modules/auth/rbac";
 import { MOCK_DEVICES } from "../../data/mockData";
 import { fetchDevicesSuccess } from "../../state/slices/devicesSlice";
 import { Text } from "../../components/themed/Text";
@@ -46,7 +47,9 @@ interface ZoneCardProps {
   notificationsByDevice: Record<string, boolean>;
 }
 
-const ZoneCard: React.FC<ZoneCardProps> = ({
+const ZoneCard: React.FC<
+  ZoneCardProps & { canUpdate: boolean; canDelete: boolean }
+> = ({
   zone,
   onToggleActive,
   onEdit,
@@ -55,6 +58,8 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
   devices,
   totalDevices,
   notificationsByDevice,
+  canUpdate,
+  canDelete,
 }) => {
   const [showActionsModal, setShowActionsModal] = useState(false);
   const isPending = zone.id.startsWith("tmp_");
@@ -148,47 +153,63 @@ const ZoneCard: React.FC<ZoneCardProps> = ({
               )}
             </View>
 
-            <View style={styles.zoneActions}>
-              <View style={styles.switchContainer}>
-                <Switch
-                  value={zone.isActive}
-                  onValueChange={handleToggleActive}
-                  size="sm"
-                />
+            {(canUpdate || canDelete) && (
+              <View style={styles.zoneActions}>
+                {canUpdate && (
+                  <View style={styles.switchContainer}>
+                    <Switch
+                      value={zone.isActive}
+                      onValueChange={handleToggleActive}
+                      size="sm"
+                    />
+                  </View>
+                )}
+                {(canUpdate || canDelete) && (
+                  <IconButton
+                    icon={<Text style={{ fontSize: 18 }}>⋯</Text>}
+                    onPress={handleMorePress}
+                    size="sm"
+                    variant="ghost"
+                  />
+                )}
               </View>
-              <IconButton
-                icon={<Text style={{ fontSize: 18 }}>⋯</Text>}
-                onPress={handleMorePress}
-                size="sm"
-                variant="ghost"
-              />
-            </View>
+            )}
           </View>
         </TouchableOpacity>
       </Card>
 
-      <Modal
-        visible={showActionsModal}
-        onClose={() => setShowActionsModal(false)}
-        title="Akcje strefy"
-        size="sm"
-        showCloseButton
-  showFooter
-        footerActions={[
-          {
-            label: "Edytuj",
-            onPress: handleEdit,
-            variant: "primary",
-          },
-          {
-            label: "Usuń",
-            onPress: handleDelete,
-            variant: "error",
-          },
-        ]}
-      >
-        <Text>Wybierz akcję dla strefy "{zone.name}"</Text>
-      </Modal>
+      {(canUpdate || canDelete) && (
+        <Modal
+          visible={showActionsModal}
+          onClose={() => setShowActionsModal(false)}
+          title="Akcje strefy"
+          size="sm"
+          showCloseButton
+          showFooter
+          footerActions={[
+            ...(canUpdate
+              ? [
+                  {
+                    label: "Edytuj",
+                    onPress: handleEdit,
+                    variant: "primary" as const,
+                  },
+                ]
+              : []),
+            ...(canDelete
+              ? [
+                  {
+                    label: "Usuń",
+                    onPress: handleDelete,
+                    variant: "error" as const,
+                  },
+                ]
+              : []),
+          ]}
+        >
+          <Text>Wybierz akcję dla strefy "{zone.name}"</Text>
+        </Modal>
+      )}
     </>
   );
 };
@@ -198,39 +219,31 @@ const EmptyState: React.FC<{ onAddZone: () => void }> = ({ onAddZone }) => (
     <View style={styles.emptyIconContainer}>
       <Text style={styles.emptyIcon}>📍</Text>
     </View>
-
     <Text variant="h3" style={styles.emptyTitle}>
-      Brak stref bezpieczeństwa
+      Czym są strefy bezpieczeństwa?
     </Text>
-
-    <Text variant="body" style={styles.emptySubtitle}>
-      Ustaw pierwszą strefę aby otrzymywać powiadomienia gdy Twoi bliscy wejdą
-      lub wyjdą z ważnych miejsc
-    </Text>
-
     <View style={styles.featureList}>
       <View style={styles.feature}>
         <Text style={styles.featureIcon}>📱</Text>
         <Text style={styles.featureText}>
-          Otrzymuj automatyczne powiadomienia
+          Otrzymuj automatyczne powiadomienia gdy Twoi bliscy wejdą lub wyjdą z
+          ważnych miejsc
         </Text>
       </View>
-
       <View style={styles.feature}>
         <Text style={styles.featureIcon}>📍</Text>
         <Text style={styles.featureText}>
-          Ustaw strefy wokół domu, szkoły, pracy
+          Ustaw strefy wokół domu, szkoły, pracy czy placu zabaw
         </Text>
       </View>
-
       <View style={styles.feature}>
         <Text style={styles.featureIcon}>🛡</Text>
         <Text style={styles.featureText}>
-          Bądź spokojny o bezpieczeństwo bliskich
+          Bądź spokojny wiedząc, że Twoi bliscy są bezpieczni w określonych
+          miejscach
         </Text>
       </View>
     </View>
-
     <Button
       title="Dodaj pierwszą strefę"
       onPress={onAddZone}
@@ -246,6 +259,10 @@ export const ZonesListScreen: React.FC = () => {
   const { showToast } = useToast();
 
   const { zones, isLoading, error } = useAppSelector((state) => state.zones);
+  const authUser = useAppSelector((s) => s.auth.user);
+  const canCreate = can(authUser, "create", "zones");
+  const canUpdate = can(authUser, "update", "zones");
+  const canDelete = can(authUser, "delete", "zones");
   const { devices } = useAppSelector((state) => state.devices);
   const totalDevices = devices.length || 0;
 
@@ -282,10 +299,12 @@ export const ZonesListScreen: React.FC = () => {
   }, [dispatch]);
 
   const handleAddZone = () => {
+    if (!canCreate) return;
     navigation.navigate("ZoneCreatorStep1");
   };
 
   const handleZonePress = (zoneId: string) => {
+    if (!canUpdate) return;
     navigation.navigate("ZoneEdit", { zoneId });
   };
 
@@ -338,6 +357,8 @@ export const ZonesListScreen: React.FC = () => {
         devices={devices}
         totalDevices={totalDevices}
         notificationsByDevice={perZoneNotifications}
+        canUpdate={canUpdate}
+        canDelete={canDelete}
       />
     );
   };
@@ -360,14 +381,14 @@ export const ZonesListScreen: React.FC = () => {
   const renderFooter = () => {
     if (zones.length === 0) return null;
 
-    return (
+    return canCreate ? (
       <Button
         title="+ Dodaj strefę"
         onPress={handleAddZone}
         variant="outline"
         style={styles.addZoneButton}
       />
-    );
+    ) : null;
   };
 
   if (isLoading && zones.length === 0) {
